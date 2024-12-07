@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3 uid="uid://cr1auscahw5oa"]
+
+[ext_resource type="PackedScene" uid="uid://cequfo0idn3ov" path="res://spaceship Goodnews.glb" id="1_1rswh"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wncvw"]
+radius = 0.198547
+height = 1.07702
+
+[node name="Ship" type="CharacterBody3D"]
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="Model" parent="Pivot" instance=ExtResource("1_1rswh")]
+transform = Transform3D(0.983005, -0.175135, -0.0550373, 0.175401, 0.984497, 0, 0.0541841, -0.0096536, 0.998484, 0, 0, -0.213187)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_wncvw")
+
+[node name="SpotLight3D" type="SpotLight3D" parent="."]
+transform = Transform3D(-0.998848, 0, -0.0479956, 0, 1, 0, 0.0479956, 0, -0.998848, -0.0867959, 0.459055, -0.621387)
+spot_range = 1.134
+spot_angle = 47.95
