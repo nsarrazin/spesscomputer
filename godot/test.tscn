@@ -30,6 +30,7 @@ environment = SubResource("Environment_qborp")
 
 [node name="Capsule" parent="." instance=ExtResource("1_5j0jt")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 500, 500, 500)
+gravity_strength = 1.0
 
 [node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("target_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 802.822, 154.346, -1034.37)
@@ -38,9 +39,13 @@ fov = 90.0
 far = 25000.0
 script = ExtResource("2_oytva")
 target_node = NodePath("../Capsule")
+orbit_radius = 50.0
+zoom_sensitivity = 1.0
+max_zoom = 100.0
 
 [node name="Planet" type="RigidBody3D" parent="."]
 script = ExtResource("4_rf2ns")
+rotation_speed = 0.01
 
 [node name="Jupiter2" parent="Planet" instance=ExtResource("4_14jfp")]
 transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, -126.493, -519.012, -9.56329)
