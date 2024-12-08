@@ -66,6 +66,9 @@ transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -5, -5
 force_magnitude = 5.0
 is_active = false
 
+[node name="Thruster" parent="Capsule" instance=ExtResource("1_vr1ow")]
+transform = Transform3D(3, 0, 8.47033e-22, 0, 3, 0, 0, 0, 3, 7.52509e-07, -8.73025, 0)
+
 [node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("target_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.0157, 29.1953, 12.3146)
 fov = 116.372
