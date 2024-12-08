@@ -1,0 +1,32 @@
+extends Node3D
+
+
+@export var force_magnitude: float = 100.0
+@export var is_active: bool = true  # Enable or disable the thruster
+@export var debug_draw: bool = true # Toggle debug visualization
+
+# Reference to visual elements
+@onready var visual_effect = $GPUParticles3D
+
+func _physics_process(delta: float):		
+	# Update visual effects
+	if visual_effect:
+		visual_effect.emitting = is_active
+		
+	if not is_active:
+		return
+		
+	# Find the parent RigidBody
+	var parent = get_parent()
+	if parent and parent is RigidBody3D:
+		parent.apply_force(global_transform.basis.y*force_magnitude, parent.global_position - global_position)
+		
+		if debug_draw:
+			# Draw a debug sphere to visualize the thruster force
+			DebugDraw3D.draw_sphere(global_position, 1, Color.RED)
+		
+func fire():
+	is_active = true
+	
+func stop():
+	is_active = false
