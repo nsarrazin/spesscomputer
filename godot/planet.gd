@@ -8,9 +8,8 @@ func _ready() -> void:
 	global_position = Vector3.ZERO
 	# Lock all movement except Y rotation
 	freeze = true
-	freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	# Rotate around Y axis
 	rotate_y(rotation_speed * delta)

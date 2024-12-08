@@ -50,6 +50,12 @@ impl RedisArray {
     }
 
     #[func]
+    pub fn set_field_byte(&mut self, index: i32, value: u8) {
+        let mut conn = get_redis_conn();
+        conn.setrange(&self.key, index as isize, &[value]).unwrap_or(());
+    }
+
+    #[func]
     pub fn set_field(&mut self, values: Array<u8>) {
         let mut conn = get_redis_conn();
         let mut bytes = Vec::new();

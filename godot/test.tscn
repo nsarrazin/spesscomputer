@@ -1,16 +1,29 @@
-[gd_scene load_steps=6 format=3 uid="uid://dmow5ogajbtl5"]
+[gd_scene load_steps=9 format=3 uid="uid://dmow5ogajbtl5"]
 
 [ext_resource type="PackedScene" uid="uid://bef0n7yxjo4ns" path="res://Capsule.tscn" id="1_5j0jt"]
+[ext_resource type="Texture2D" uid="uid://dtlptku1k7pm1" path="res://space_background.webp" id="1_n0ryh"]
 [ext_resource type="Script" path="res://camera_3d.gd" id="2_oytva"]
 [ext_resource type="PackedScene" uid="uid://dtvpvsyfg6w36" path="res://Jupiter.glb" id="4_14jfp"]
 [ext_resource type="Script" path="res://planet.gd" id="4_rf2ns"]
 
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_qv8dj"]
+panorama = ExtResource("1_n0ryh")
+
+[sub_resource type="Sky" id="Sky_lcdlc"]
+sky_material = SubResource("PanoramaSkyMaterial_qv8dj")
+
 [sub_resource type="Environment" id="Environment_qborp"]
+background_mode = 2
+sky = SubResource("Sky_lcdlc")
 ambient_light_source = 2
 ambient_light_color = Color(0.650128, 0.650128, 0.650128, 1)
 glow_enabled = true
 
 [node name="Test" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.999816, -0.0130926, 0.0140401, 0, 0.731354, 0.681998, -0.0191974, 0.681873, -0.731219, 0, 0, 0)
+shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_qborp")

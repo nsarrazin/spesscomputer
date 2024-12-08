@@ -18,8 +18,7 @@ func _ready() -> void:
 		elif child.name.contains("Thruster"):
 			thruster = child
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	var field = array.get_field()
 
 	if field.size() == 0:
@@ -66,21 +65,14 @@ func _process(delta: float) -> void:
 	# Map orientation components to 0-255 range
 	# Convert quaternion to euler angles and remap from -PI to PI
 	var euler = orientation_parent.get_euler()
+
 	var rot_x = clamp(remap(euler.x, -PI, PI, 0, 255), 0, 255) as int
 	var rot_y = clamp(remap(euler.y, -PI, PI, 0, 255), 0, 255) as int
 	var rot_z = clamp(remap(euler.z, -PI, PI, 0, 255), 0, 255) as int
 
-	print("Velocity (x,y,z): ", vel_x, ", ", vel_y, ", ", vel_z)
-	print("Rotation (x,y,z): ", rot_x, ", ", rot_y, ", ", rot_z)
-
-	# Update field with new values
-	array.set_field([
-		main_thruster_strength,
-		control_thruster_mask,
-		vel_x,
-		vel_y, 
-		vel_z,
-		rot_x,
-		rot_y,
-		rot_z
-	])
+	array.set_field_byte(3, vel_x)
+	array.set_field_byte(4, vel_y)
+	array.set_field_byte(5, vel_z)
+	array.set_field_byte(6, rot_x)
+	array.set_field_byte(7, rot_y)
+	array.set_field_byte(8, rot_z)
