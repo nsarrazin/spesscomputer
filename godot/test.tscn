@@ -1,18 +1,15 @@
-[gd_scene load_steps=10 format=3 uid="uid://dmow5ogajbtl5"]
+[gd_scene load_steps=9 format=3 uid="uid://dmow5ogajbtl5"]
 
+[ext_resource type="Script" path="res://capsule.gd" id="1_qj8us"]
 [ext_resource type="PackedScene" uid="uid://ffrn27kk0cdb" path="res://Thruster.tscn" id="1_vr1ow"]
 [ext_resource type="Script" path="res://camera_3d.gd" id="2_oytva"]
+[ext_resource type="PackedScene" uid="uid://dtvpvsyfg6w36" path="res://Jupiter.glb" id="4_14jfp"]
+[ext_resource type="Script" path="res://planet.gd" id="4_rf2ns"]
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_rvv7r"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_l30sr"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_haxq6"]
-albedo_color = Color(0.275091, 0.275091, 0.275091, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_dbnki"]
-
-[sub_resource type="Skin" id="Skin_4rj6a"]
+[sub_resource type="Environment" id="Environment_qborp"]
+ambient_light_source = 2
+ambient_light_color = Color(0.650128, 0.650128, 0.650128, 1)
+glow_enabled = true
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1jktp"]
 
@@ -20,24 +17,15 @@ albedo_color = Color(0.275091, 0.275091, 0.275091, 1)
 
 [node name="Test" type="Node3D"]
 
-[node name="Ground" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
-physics_material_override = SubResource("PhysicsMaterial_rvv7r")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
-transform = Transform3D(600, 0, 0, 0, 2, 0, 0, 0, 600, 0, 0, 0)
-shape = SubResource("BoxShape3D_l30sr")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
-transform = Transform3D(600, 0, 0, 0, 2, 0, 0, 0, 600, 0, 0, 0)
-material_override = SubResource("StandardMaterial3D_haxq6")
-mesh = SubResource("BoxMesh_dbnki")
-skin = SubResource("Skin_4rj6a")
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_qborp")
 
 [node name="Capsule" type="RigidBody3D" parent="."]
-transform = Transform3D(-1, -8.74228e-08, 3.82137e-15, 0, -4.37114e-08, -1, 8.74228e-08, -1, 4.37114e-08, 0.0770571, 26.5395, 0.0688944)
-mass = 0.1
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1454.6, -31.9176, 1514.32)
+mass = 250.0
 gravity_scale = 0.0
+linear_velocity = Vector3(50, 50, 50)
+script = ExtResource("1_qj8us")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Capsule"]
 transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
@@ -51,6 +39,7 @@ mesh = SubResource("CapsuleMesh_cue38")
 [node name="Thruster3" parent="Capsule" instance=ExtResource("1_vr1ow")]
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 5, 5, 0)
 force_magnitude = 5.0
+is_active = false
 
 [node name="Thruster2" parent="Capsule" instance=ExtResource("1_vr1ow")]
 transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -5, 5, 0)
@@ -60,6 +49,7 @@ is_active = false
 [node name="Thruster4" parent="Capsule" instance=ExtResource("1_vr1ow")]
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 5, -5, 0)
 force_magnitude = 5.0
+is_active = false
 
 [node name="Thruster5" parent="Capsule" instance=ExtResource("1_vr1ow")]
 transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -5, -5, 0)
@@ -68,15 +58,18 @@ is_active = false
 
 [node name="Thruster" parent="Capsule" instance=ExtResource("1_vr1ow")]
 transform = Transform3D(3, 0, 8.47033e-22, 0, 3, 0, 0, 0, 3, 7.52509e-07, -8.73025, 0)
+force_magnitude = 50000.0
 
 [node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("target_node")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.0157, 29.1953, 12.3146)
-fov = 116.372
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 802.822, 154.346, -1034.37)
+current = true
+fov = 90.0
+far = 25000.0
 script = ExtResource("2_oytva")
 target_node = NodePath("../Capsule")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -144.126, 50, -101.516)
-visible = false
-light_energy = 11.74
-light_indirect_energy = 3.635
+[node name="Planet" type="RigidBody3D" parent="."]
+script = ExtResource("4_rf2ns")
+
+[node name="Jupiter2" parent="Planet" instance=ExtResource("4_14jfp")]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, -126.493, -519.012, -9.56329)

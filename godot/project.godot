@@ -14,3 +14,8 @@ config/name="SpessComputer"
 run/main_scene="res://test.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
+
+[physics]
+
+3d/default_linear_damp=0.0
+3d/default_angular_damp=0.0
