@@ -1,0 +1,72 @@
+[gd_scene load_steps=6 format=3 uid="uid://bef0n7yxjo4ns"]
+
+[ext_resource type="Script" path="res://capsule.gd" id="1_mp2ty"]
+[ext_resource type="Script" path="res://computer.gd" id="2_ntuyc"]
+[ext_resource type="PackedScene" uid="uid://ffrn27kk0cdb" path="res://Thruster.tscn" id="3_e3yg7"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1jktp"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_cue38"]
+
+[node name="Capsule" type="RigidBody3D"]
+mass = 250.0
+gravity_scale = 0.0
+linear_velocity = Vector3(50, 50, 50)
+script = ExtResource("1_mp2ty")
+
+[node name="Computer" type="Node3D" parent="."]
+script = ExtResource("2_ntuyc")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_1jktp")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+transparency = 0.61
+mesh = SubResource("CapsuleMesh_cue38")
+
+[node name="Thruster" parent="." instance=ExtResource("3_e3yg7")]
+transform = Transform3D(3, 0, 8.47033e-22, 0, 3, 0, 0, 0, 3, 7.52509e-07, -8.73025, 0)
+force_magnitude = 50000.0
+is_active = false
+
+[node name="Thruster2" parent="." instance=ExtResource("3_e3yg7")]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -5, 5, 0)
+force_magnitude = 5.0
+is_active = false
+
+[node name="Thruster3" parent="." instance=ExtResource("3_e3yg7")]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 5, 5, 0)
+force_magnitude = 5.0
+is_active = false
+
+[node name="Thruster4" parent="." instance=ExtResource("3_e3yg7")]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 5, -5, 0)
+force_magnitude = 5.0
+is_active = false
+
+[node name="Thruster5" parent="." instance=ExtResource("3_e3yg7")]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -5, -5, 0)
+force_magnitude = 5.0
+is_active = false
+
+[node name="Thruster6" parent="." instance=ExtResource("3_e3yg7")]
+transform = Transform3D(1.91069e-15, -4.37114e-08, -1, -1, -4.37114e-08, 0, -4.37114e-08, 1, -4.37114e-08, 0, 5, -5)
+force_magnitude = 5.0
+is_active = false
+
+[node name="Thruster7" parent="." instance=ExtResource("3_e3yg7")]
+transform = Transform3D(1.91069e-15, -4.37114e-08, -1, -1, -4.37114e-08, 0, -4.37114e-08, 1, -4.37114e-08, 0, -5, -5)
+force_magnitude = 5.0
+is_active = false
+
+[node name="Thruster8" parent="." instance=ExtResource("3_e3yg7")]
+transform = Transform3D(1.91069e-15, -4.37114e-08, 1, -1, -4.37114e-08, 0, 4.37114e-08, -1, -4.37114e-08, 0, 5, 5)
+force_magnitude = 5.0
+is_active = false
+
+[node name="Thruster9" parent="." instance=ExtResource("3_e3yg7")]
+transform = Transform3D(1.91069e-15, -4.37114e-08, 1, -1, -4.37114e-08, 0, 4.37114e-08, -1, -4.37114e-08, 0, -5, 5)
+force_magnitude = 5.0
+is_active = false

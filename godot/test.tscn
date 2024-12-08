@@ -1,7 +1,6 @@
-[gd_scene load_steps=9 format=3 uid="uid://dmow5ogajbtl5"]
+[gd_scene load_steps=6 format=3 uid="uid://dmow5ogajbtl5"]
 
-[ext_resource type="Script" path="res://capsule.gd" id="1_qj8us"]
-[ext_resource type="PackedScene" uid="uid://ffrn27kk0cdb" path="res://Thruster.tscn" id="1_vr1ow"]
+[ext_resource type="PackedScene" uid="uid://bef0n7yxjo4ns" path="res://Capsule.tscn" id="1_5j0jt"]
 [ext_resource type="Script" path="res://camera_3d.gd" id="2_oytva"]
 [ext_resource type="PackedScene" uid="uid://dtvpvsyfg6w36" path="res://Jupiter.glb" id="4_14jfp"]
 [ext_resource type="Script" path="res://planet.gd" id="4_rf2ns"]
@@ -11,54 +10,13 @@ ambient_light_source = 2
 ambient_light_color = Color(0.650128, 0.650128, 0.650128, 1)
 glow_enabled = true
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1jktp"]
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_cue38"]
-
 [node name="Test" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_qborp")
 
-[node name="Capsule" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1454.6, -31.9176, 1514.32)
-mass = 250.0
-gravity_scale = 0.0
-linear_velocity = Vector3(50, 50, 50)
-script = ExtResource("1_qj8us")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Capsule"]
-transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
-shape = SubResource("CapsuleShape3D_1jktp")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Capsule"]
-transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
-transparency = 0.61
-mesh = SubResource("CapsuleMesh_cue38")
-
-[node name="Thruster3" parent="Capsule" instance=ExtResource("1_vr1ow")]
-transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 5, 5, 0)
-force_magnitude = 5.0
-is_active = false
-
-[node name="Thruster2" parent="Capsule" instance=ExtResource("1_vr1ow")]
-transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -5, 5, 0)
-force_magnitude = 5.0
-is_active = false
-
-[node name="Thruster4" parent="Capsule" instance=ExtResource("1_vr1ow")]
-transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 5, -5, 0)
-force_magnitude = 5.0
-is_active = false
-
-[node name="Thruster5" parent="Capsule" instance=ExtResource("1_vr1ow")]
-transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -5, -5, 0)
-force_magnitude = 5.0
-is_active = false
-
-[node name="Thruster" parent="Capsule" instance=ExtResource("1_vr1ow")]
-transform = Transform3D(3, 0, 8.47033e-22, 0, 3, 0, 0, 0, 3, 7.52509e-07, -8.73025, 0)
-force_magnitude = 50000.0
+[node name="Capsule" parent="." instance=ExtResource("1_5j0jt")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 500, 500, 500)
 
 [node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("target_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 802.822, 154.346, -1034.37)

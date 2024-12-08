@@ -3,11 +3,20 @@
 [ext_resource type="Script" path="res://thruster.gd" id="1_4sguc"]
 [ext_resource type="PackedScene" uid="uid://u23xyshyb73k" path="res://Space engine.glb" id="1_gmtdu"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uj8b7"]
-albedo_color = Color(0, 0.85098, 0.815686, 1)
-metallic = 1.0
-metallic_specular = 0.0
-roughness = 0.0
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_jnn5u"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d0pdd"]
+disable_ambient_light = true
+disable_fog = true
+albedo_color = Color(0.768689, 0.291977, 0.0867465, 1)
+metallic = 0.45
+metallic_specular = 1.0
+metallic_texture = SubResource("NoiseTexture2D_jnn5u")
+emission_enabled = true
+emission = Color(0.307918, 0.245735, 4.81308e-08, 1)
+disable_receive_shadows = true
+grow = true
+grow_amount = 0.158
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_0kbrb"]
 direction = Vector3(0, -1, 0)
@@ -25,8 +34,6 @@ turbulence_noise_strength = 6.5
 radius = 0.05
 height = 0.1
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_q6yca"]
-
 [node name="Thruster" type="Node3D"]
 script = ExtResource("1_4sguc")
 
@@ -35,12 +42,16 @@ transform = Transform3D(0.1, 0, 0, 0, -4.37114e-09, 0.1, 0, -0.1, -4.37114e-09, 
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.42989, 0)
-material_override = SubResource("StandardMaterial3D_uj8b7")
-amount = 150
-lifetime = 0.52
+material_override = SubResource("StandardMaterial3D_d0pdd")
+transparency = 0.25
+cast_shadow = 0
+emitting = false
+amount = 300
+lifetime = 0.5
+randomness = 0.25
+fixed_fps = 60
 collision_base_size = 0.0
+local_coords = true
+trail_lifetime = 2.4
 process_material = SubResource("ParticleProcessMaterial_0kbrb")
 draw_pass_1 = SubResource("SphereMesh_afsuq")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("BoxShape3D_q6yca")

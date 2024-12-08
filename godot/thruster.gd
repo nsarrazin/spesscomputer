@@ -1,5 +1,6 @@
-extends Node3D
+class_name Thruster
 
+extends Node3D
 
 @export var force_magnitude: float = 100.0
 @export var is_active: bool = true  # Enable or disable the thruster

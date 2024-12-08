@@ -2,7 +2,6 @@ use godot::prelude::*;
 use redis::Commands;
 use lazy_static::lazy_static;
 use r2d2::{Pool, PooledConnection};
-
 struct MyExtension;
 
 #[gdextension]
@@ -21,7 +20,7 @@ pub fn get_redis_conn() -> PooledConnection<redis::Client> {
 
 
 #[derive(GodotClass)]
-#[class(init)]
+#[class(no_init)] // We only provide a custom constructor.
 struct RedisArray {
     key: String,
     #[allow(dead_code)]
@@ -31,6 +30,14 @@ struct RedisArray {
 
 #[godot_api]
 impl RedisArray {
+    #[func]
+    pub fn create(key: String) -> Gd<Self> {
+        Gd::from_object(Self {
+            key,
+            values: Array::new(),
+        })
+    }
+
     #[func]
     pub fn get_field(&self) -> Array<u8> {
         let mut conn = get_redis_conn();
@@ -52,5 +59,14 @@ impl RedisArray {
             }
         }
         conn.set(&self.key, bytes).unwrap_or(());
+    }
+}
+
+impl Drop for RedisArray {
+    fn drop(&mut self) {
+        godot_print!("RedisArray '{}' is being destroyed!", self.key);
+        let mut conn = get_redis_conn();
+        conn.del(&self.key).unwrap_or(());
+        godot_print!("RedisArray '{}' deleted!", self.key);
     }
 }

@@ -11,3 +11,11 @@ godot = "0.2.0"
 lazy_static = "1.5.0"
 r2d2 = "0.8.10"
 redis = { version = "0.27.6", features = ["r2d2"] }
+
+[dependencies.uuid]
+version = "1.11.0"
+features = [
+    "v4",                # Lets you generate random UUIDs
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+]
