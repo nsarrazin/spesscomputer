@@ -28,7 +28,7 @@ mesh = SubResource("CapsuleMesh_cue38")
 
 [node name="Thruster" parent="." instance=ExtResource("3_e3yg7")]
 transform = Transform3D(3, 0, 8.47033e-22, 0, 3, 0, 0, 0, 3, 7.52509e-07, -8.73025, 0)
-force_magnitude = 50000.0
+force_magnitude = 5000.0
 is_active = false
 
 [node name="Thruster2" parent="." instance=ExtResource("3_e3yg7")]

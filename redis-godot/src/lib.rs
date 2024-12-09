@@ -32,10 +32,14 @@ struct RedisArray {
 impl RedisArray {
     #[func]
     pub fn create(key: String) -> Gd<Self> {
-        Gd::from_object(Self {
+        let array = Self {
             key,
             values: Array::new(),
-        })
+        };
+
+        array.set_field(Array::new());
+
+        Gd::from_object(array)
     }
 
     #[func]
@@ -50,14 +54,14 @@ impl RedisArray {
     }
 
     #[func]
-    pub fn set_field_byte(&mut self, index: i32, value: u8) {
+    pub fn set_field_byte(&self, index: i32, value: u8) {
         let mut conn = get_redis_conn();
         conn.setrange(&self.key, index as isize, &[value]).unwrap_or(());
     }
 
     #[func]
-    pub fn set_field(&mut self, values: Array<u8>) {
-        let mut conn = get_redis_conn();
+    pub fn set_field(&self, values: Array<u8>) {
+        let mut conn: PooledConnection<redis::Client> = get_redis_conn();
         let mut bytes = Vec::new();
         for i in 0..values.len() {
             if let Some(byte) = values.get(i as usize) {
