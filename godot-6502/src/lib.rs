@@ -1,11 +1,9 @@
 use godot::prelude::*;
 use std::sync::{Arc, Mutex};
-use std::thread;
 use mos6502::memory::Bus;
 use mos6502::memory::Memory;
 use mos6502::instruction::Nmos6502;
 use mos6502::cpu::CPU;
-use std::time::Instant;
 
 use uuid::Uuid;
 
@@ -28,7 +26,7 @@ impl CPUWrapper {
 
     pub fn run_steps(&self, steps: u32) {
         for _ in 0..steps {
-            self.cpu.lock().unwrap().single_step();
+            self.run_step();
         }
     }
 }
@@ -147,3 +145,9 @@ impl Emulator6502 {
         cpu_guard.memory.set_byte(address, value);
     }
 }
+
+// impl Drop for Emulator6502 {
+//     fn drop(&mut self) {
+//         ORCHESTRATOR.lock().unwrap().remove_cpu(Uuid::parse_str(&self.key).unwrap());
+//     }
+// }
