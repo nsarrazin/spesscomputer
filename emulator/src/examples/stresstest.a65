@@ -1,0 +1,11 @@
+
+.ORG $0600
+
+LDX #100        ; Load X with decimal 100
+
+loop:
+DEX             ; Decrement X
+CPX #$FF        ; Compare X with -1 (255 in unsigned)
+BNE loop        ; If not equal to -1, continue loop
+LDX #100        ; Reset X to 100
+JMP loop        ; Jump back to start
