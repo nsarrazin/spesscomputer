@@ -1,0 +1,14 @@
+[configuration]
+entry_symbol = "gdext_rust_init"
+compatibility_minimum = 4.1
+reloadable = true
+
+[libraries]
+linux.debug.x86_64 =     "res://../godot-6502/target/debug/libgodot_6502.so"
+linux.release.x86_64 =   "res://../godot-6502/target/release/libgodot_6502.so"
+windows.debug.x86_64 =   "res://../godot-6502/target/debug/godot_6502.dll"
+windows.release.x86_64 = "res://../godot-6502/target/release/godot_6502.dll"
+macos.debug =            "res://../godot-6502/target/debug/libgodot_6502.dylib"
+macos.release =          "res://../godot-6502/target/release/libgodot_6502.dylib"
+macos.debug.arm64 =      "res://../godot-6502/target/debug/libgodot_6502.dylib"
+macos.release.arm64 =    "res://../godot-6502/target/release/libgodot_6502.dylib"

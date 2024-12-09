@@ -1,8 +1,7 @@
 extends Node3D
 
 var max_abs_velocity: float = 1000.0
-@export var key: String = "computer";
-@onready var array = RedisArray.create(key)
+var emulator: Emulator6502
 
 var buffer: Array[int] = []
 var control_thruster_nodes: Array[Thruster] = []
@@ -10,7 +9,7 @@ var thruster: Thruster
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	array.set_field([0,0,0,0,0,0,0,0])
+	emulator = Emulator6502.create_cpu("demo.bin", 5000)
 
 	for child in get_parent().get_children():
 		if child.name.contains("Thruster") and child.name != "Thruster":
@@ -19,14 +18,10 @@ func _ready() -> void:
 			thruster = child
 
 func _physics_process(_delta: float) -> void:
-	var field = array.get_field()
+	var mmio = emulator.get_mmio()
 
-	if field.size() == 0:
-		array.set_field([0,0,0,0,0,0,0,0])
-		return
-		
-	var main_thruster_strength = field[0]
-	var control_thruster_mask = field[1]
+	var main_thruster_strength = mmio[0]
+	var control_thruster_mask = mmio[1]
 	
 	if main_thruster_strength > 0:
 		thruster.fire()
@@ -70,9 +65,11 @@ func _physics_process(_delta: float) -> void:
 	var rot_y = clamp(remap(euler.y, -PI, PI, 0, 255), 0, 255) as int
 	var rot_z = clamp(remap(euler.z, -PI, PI, 0, 255), 0, 255) as int
 
-	array.set_field_byte(3, vel_x)
-	array.set_field_byte(4, vel_y)
-	array.set_field_byte(5, vel_z)
-	array.set_field_byte(6, rot_x)
-	array.set_field_byte(7, rot_y)
-	array.set_field_byte(8, rot_z)
+	emulator.set_memory(0x203, vel_x)
+	emulator.set_memory(0x204, vel_y)
+	emulator.set_memory(0x205, vel_z)
+	emulator.set_memory(0x206, rot_x)
+	emulator.set_memory(0x207, rot_y)
+	emulator.set_memory(0x208, rot_z)
+
+	emulator._process(_delta)
