@@ -39,13 +39,9 @@ pub fn create_cpu(path: &str) -> Arc<Mutex<cpu::CPU<Memory, Nmos6502>>> {
             // println!("{:?}", page_3);
             let _: () = con.set("computer", page_3).unwrap();
 
-            println!("Speed: {:02X}", thread_cpu.lock().unwrap().memory.get_byte(0x0204));
             thread_cpu.lock().unwrap().single_step();
 
-            let registers = thread_cpu.lock().unwrap().registers;
-            println!("PC: {:04X}, A: {:02X}, X: {:02X}, Y: {:02X}, P: {:02X}", registers.program_counter, registers.accumulator, registers.index_x, registers.index_y, registers.status);
-            
-            if registers.program_counter == 0xFFFF {
+            if thread_cpu.lock().unwrap().registers.program_counter == 0xFFFF {
                 println!("CPU halted - PC reached 0xFFFF");
                 break;
             }
