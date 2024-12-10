@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dtvpvsyfg6w36"
-path="res://.godot/imported/Jupiter.glb-94c5acb7d47790e181e1a927e9041b9e.scn"
+path="res://.godot/imported/Jupiter.glb-2a48de3e65027fc1a38db1fe98181843.scn"
 
 [deps]
 
-source_file="res://Jupiter.glb"
-dest_files=["res://.godot/imported/Jupiter.glb-94c5acb7d47790e181e1a927e9041b9e.scn"]
+source_file="res://art/models/Jupiter.glb"
+dest_files=["res://.godot/imported/Jupiter.glb-2a48de3e65027fc1a38db1fe98181843.scn"]
 
 [params]
 

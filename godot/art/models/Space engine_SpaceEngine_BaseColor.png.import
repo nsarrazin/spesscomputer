@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cvrhqvw4eifbl"
-path.s3tc="res://.godot/imported/Jupiter_1225 Jupiter.png-c37a8153753f330e184ee87f3e636943.s3tc.ctex"
+uid="uid://bnr7q1w5v8grs"
+path.s3tc="res://.godot/imported/Space engine_SpaceEngine_BaseColor.png-bc4720a03f527f12caac189075536541.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "f793448b9295ccf873f613aad9c531d6"
+"md5": "6159a6594056b7babf433692a5d984e5"
 }
 
 [deps]
 
-source_file="res://Jupiter_1225 Jupiter.png"
-dest_files=["res://.godot/imported/Jupiter_1225 Jupiter.png-c37a8153753f330e184ee87f3e636943.s3tc.ctex"]
+source_file="res://art/models/Space engine_SpaceEngine_BaseColor.png"
+dest_files=["res://.godot/imported/Space engine_SpaceEngine_BaseColor.png-bc4720a03f527f12caac189075536541.s3tc.ctex"]
 
 [params]
 

@@ -1,10 +1,10 @@
 [gd_scene load_steps=9 format=3 uid="uid://dmow5ogajbtl5"]
 
-[ext_resource type="PackedScene" uid="uid://bef0n7yxjo4ns" path="res://Capsule.tscn" id="1_5j0jt"]
-[ext_resource type="Texture2D" uid="uid://dtlptku1k7pm1" path="res://space_background.webp" id="1_n0ryh"]
-[ext_resource type="Script" path="res://camera_3d.gd" id="2_oytva"]
-[ext_resource type="PackedScene" uid="uid://dtvpvsyfg6w36" path="res://Jupiter.glb" id="4_14jfp"]
-[ext_resource type="Script" path="res://planet.gd" id="4_rf2ns"]
+[ext_resource type="PackedScene" uid="uid://bef0n7yxjo4ns" path="res://scenes/Capsule.tscn" id="1_5j0jt"]
+[ext_resource type="Texture2D" uid="uid://dtlptku1k7pm1" path="res://art/images/space_background.webp" id="1_n0ryh"]
+[ext_resource type="Script" path="res://scripts/camera_3d.gd" id="2_oytva"]
+[ext_resource type="PackedScene" uid="uid://dtvpvsyfg6w36" path="res://art/models/Jupiter.glb" id="4_14jfp"]
+[ext_resource type="Script" path="res://scripts/planet.gd" id="4_rf2ns"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_qv8dj"]
 panorama = ExtResource("1_n0ryh")
@@ -28,10 +28,6 @@ shadow_enabled = true
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_qborp")
 
-[node name="Capsule" parent="." instance=ExtResource("1_5j0jt")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 500, 500, 500)
-gravity_strength = 1.0
-
 [node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("target_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 802.822, 154.346, -1034.37)
 current = true
@@ -49,3 +45,7 @@ rotation_speed = 0.01
 
 [node name="Jupiter2" parent="Planet" instance=ExtResource("4_14jfp")]
 transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, -126.493, -519.012, -9.56329)
+
+[node name="Capsule" parent="." instance=ExtResource("1_5j0jt")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1000, 1000, 1000)
+gravity_strength = 1000.0

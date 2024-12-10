@@ -2,25 +2,22 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bnr7q1w5v8grs"
-path.s3tc="res://.godot/imported/Space engine_SpaceEngine_BaseColor.png-4845bdf88ee55517d0b00e8375e7a208.s3tc.ctex"
+uid="uid://dtlptku1k7pm1"
+path.bptc="res://.godot/imported/space_background.webp-d8ad45a58d896f4439eb9b7594c5bbed.bptc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
-generator_parameters={
-"md5": "6159a6594056b7babf433692a5d984e5"
-}
 
 [deps]
 
-source_file="res://Space engine_SpaceEngine_BaseColor.png"
-dest_files=["res://.godot/imported/Space engine_SpaceEngine_BaseColor.png-4845bdf88ee55517d0b00e8375e7a208.s3tc.ctex"]
+source_file="res://art/images/space_background.webp"
+dest_files=["res://.godot/imported/space_background.webp-d8ad45a58d896f4439eb9b7594c5bbed.bptc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

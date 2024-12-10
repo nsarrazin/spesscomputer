@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cequfo0idn3ov"
-path="res://.godot/imported/spaceship Goodnews.glb-8cddde2b2c9dcac26a5c6b5c0a0678cd.scn"
+uid="uid://u23xyshyb73k"
+path="res://.godot/imported/Space engine.glb-a6f3bc40ea69abf7af5531467e40268d.scn"
 
 [deps]
 
-source_file="res://spaceship Goodnews.glb"
-dest_files=["res://.godot/imported/spaceship Goodnews.glb-8cddde2b2c9dcac26a5c6b5c0a0678cd.scn"]
+source_file="res://art/models/Space engine.glb"
+dest_files=["res://.godot/imported/Space engine.glb-a6f3bc40ea69abf7af5531467e40268d.scn"]
 
 [params]
 

@@ -9,7 +9,6 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	# Calculate direction to center (0,0,0)
 	var direction_to_center = -global_position.normalized()
-	
 	# Apply force towards center
 	apply_central_force(direction_to_center * gravity_strength * mass)
 

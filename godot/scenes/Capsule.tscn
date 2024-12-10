@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://bef0n7yxjo4ns"]
 
-[ext_resource type="Script" path="res://capsule.gd" id="1_mp2ty"]
-[ext_resource type="Script" path="res://computer.gd" id="2_ntuyc"]
-[ext_resource type="PackedScene" uid="uid://ffrn27kk0cdb" path="res://Thruster.tscn" id="3_e3yg7"]
+[ext_resource type="Script" path="res://scripts/capsule.gd" id="1_mp2ty"]
+[ext_resource type="Script" path="res://scripts/computer.gd" id="2_ntuyc"]
+[ext_resource type="PackedScene" uid="uid://ffrn27kk0cdb" path="res://scenes/Thruster.tscn" id="3_e3yg7"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1jktp"]
 

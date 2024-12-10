@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://ffrn27kk0cdb"]
 
-[ext_resource type="Script" path="res://thruster.gd" id="1_4sguc"]
-[ext_resource type="PackedScene" uid="uid://u23xyshyb73k" path="res://Space engine.glb" id="1_gmtdu"]
+[ext_resource type="Script" path="res://scripts/thruster.gd" id="1_4sguc"]
+[ext_resource type="PackedScene" uid="uid://u23xyshyb73k" path="res://art/models/Space engine.glb" id="1_gmtdu"]
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_jnn5u"]
 

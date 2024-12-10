@@ -2,22 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dtlptku1k7pm1"
-path.bptc="res://.godot/imported/space_background.webp-9af43bc7420fdd0cc1c25fa7f3ca4c3f.bptc.ctex"
+uid="uid://cvrhqvw4eifbl"
+path.s3tc="res://.godot/imported/Jupiter_1225 Jupiter.png-31c72039cdb8570ed172b7c721da8e12.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
+generator_parameters={
+"md5": "f793448b9295ccf873f613aad9c531d6"
+}
 
 [deps]
 
-source_file="res://space_background.webp"
-dest_files=["res://.godot/imported/space_background.webp-9af43bc7420fdd0cc1c25fa7f3ca4c3f.bptc.ctex"]
+source_file="res://art/models/Jupiter_1225 Jupiter.png"
+dest_files=["res://.godot/imported/Jupiter_1225 Jupiter.png-31c72039cdb8570ed172b7c721da8e12.s3tc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=true
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
