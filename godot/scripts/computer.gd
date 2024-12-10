@@ -18,6 +18,7 @@ func _ready() -> void:
 			thruster = child
 
 func _physics_process(_delta: float) -> void:
+	emulator.wait_until_done()
 	var mmio = emulator.get_mmio()
 
 	var main_thruster_strength = mmio[0]

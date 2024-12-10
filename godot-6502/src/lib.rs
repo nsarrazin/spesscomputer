@@ -1,5 +1,5 @@
 use godot::prelude::*;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, Condvar};
 use mos6502::memory::Bus;
 use mos6502::memory::Memory;
 use mos6502::instruction::Nmos6502;
@@ -13,6 +13,8 @@ use std::collections::HashMap;
 #[derive(Clone)]
 struct CPUWrapper {
     cpu: Arc<Mutex<CPU<Memory, Nmos6502>>>,
+    is_running: Arc<Mutex<bool>>,
+    completion_cvar: Arc<(Mutex<bool>, Condvar)>,
 }
 
 impl CPUWrapper {
@@ -27,6 +29,37 @@ impl CPUWrapper {
     pub fn run_steps(&self, steps: u32) {
         for _ in 0..steps {
             self.run_step();
+        }
+    }
+
+    pub fn run_steps_async(&self, steps: u32) {
+        let cpu = self.cpu.clone();
+        let is_running = self.is_running.clone();
+        let completion_cvar = self.completion_cvar.clone();
+        
+        let (lock, cvar) = &*completion_cvar;
+        *is_running.lock().unwrap() = true;
+        *lock.lock().unwrap() = true;
+        
+        std::thread::spawn(move || {
+            for _ in 0..steps {
+                cpu.lock().unwrap().single_step();
+            }
+            
+            let (lock, cvar) = &*completion_cvar;
+            let mut completed = lock.lock().unwrap();
+            *completed = false;
+            *is_running.lock().unwrap() = false;
+            cvar.notify_one();
+        });
+    }
+
+    pub fn wait_until_done(&self) {
+        let (lock, cvar) = &*self.completion_cvar;
+        let mut completed = lock.lock().unwrap();
+        while *completed {
+            godot_warn!("Waiting for CPU to finish previous processing... Is the server lagging?");
+            completed = cvar.wait(completed).unwrap();
         }
     }
 }
@@ -64,6 +97,8 @@ impl Orchestrator {
 
         self.cpus.insert(key, CPUWrapper {
             cpu,
+            is_running: Arc::new(Mutex::new(false)),
+            completion_cvar: Arc::new((Mutex::new(false), Condvar::new())),
         });
 
         return key;
@@ -110,7 +145,7 @@ impl Emulator6502 {
     pub fn _process(&self, delta: f64) {
         // Calculate how many CPU cycles to execute based on time delta and target frequency
         let steps = (delta * self.frequency as f64) as u32;
-        self.cpu().run_steps(steps);
+        self.cpu().run_steps_async(steps);
     }
 
     #[func]
@@ -144,8 +179,15 @@ impl Emulator6502 {
         let mut cpu_guard = cpu.lock().unwrap();
         cpu_guard.memory.set_byte(address, value);
     }
+
+    #[func]
+    pub fn wait_until_done(&self) {
+        self.cpu().wait_until_done();
+    }
 }
 
+
+// this causes a panic for some reason
 // impl Drop for Emulator6502 {
 //     fn drop(&mut self) {
 //         ORCHESTRATOR.lock().unwrap().remove_cpu(Uuid::parse_str(&self.key).unwrap());
