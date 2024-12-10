@@ -15,7 +15,10 @@ run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
+[global_group]
+
+affected_by_gravity="Rigid bodies affected by gravity"
+
 [physics]
 
 3d/default_linear_damp=0.0
-3d/default_angular_damp=0.0

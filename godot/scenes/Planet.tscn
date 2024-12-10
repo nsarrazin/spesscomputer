@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://dt0sit4eidov4"]
+
+[ext_resource type="Script" path="res://scenes/planet_controller.gd" id="1_epcdx"]
+
+[node name="Planet" type="RigidBody3D"]
+mass = 1000.0
+gravity_scale = 0.0
+freeze = true
+script = ExtResource("1_epcdx")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]

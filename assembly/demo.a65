@@ -1,20 +1,57 @@
 OUTPUT = $0200
-SPEED = $0204
+RCS = $0201
+ROT_X = $0209
+ROT_Y = $020A
+ROT_Z = $020B
+
+DEADZONE = 1
 
 .ORG $0600
 
-LDY #$7F        ; Load Y with hex 127 (0x7F)
+start:
+    LDA #0          ; Clear RCS thrusters initially
+    STA RCS
+    
+check_x:
+    LDA ROT_X       ; Load X rotation
+    SEC
+    SBC #128        ; Subtract 128 to center around 0
+    BCS x_positive  ; If result is positive, branch
+    
+    ; X is negative, need clockwise rotation
+    LDA RCS
+    ORA #%10010000  ; Enable thrusters 0 and 1
+    STA RCS
+    JMP check_y
 
-loop:
-LDA SPEED       ; Load value from 0x0204
-CPY $0204       ; Compare with 23 (Y register)
-BCC write_0     ; If >= 23, branch to write_0
-LDA #255        ; Load 255
-JMP write_out   ; Skip over the 0 load
+x_positive:
+    CMP #DEADZONE   ; Compare with deadzone
+    BCC check_y     ; If within deadzone, skip
+    LDA RCS
+    ORA #%01100000  ; Enable thrusters 2 and 3
+    STA RCS
 
-write_0:
-LDA #0          ; Load 0
+check_y:
+    LDA ROT_Y
+    SEC
+    SBC #128
+    BCS y_positive
+    
+    ; Y is negative
+    LDA RCS
+    ORA #%00000101  ; Enable thrusters 4 and 5
+    STA RCS
+    JMP check_z
 
-write_out:
-STA OUTPUT      ; Store to 0x0200
-JMP loop        ; Repeat
+y_positive:
+    CMP #DEADZONE
+    BCC check_z
+    LDA RCS
+    ORA #%00001010  ; Enable thrusters 6 and 7
+    STA RCS
+
+check_z:
+    LDA #0          ; For now, we'll leave Z rotation control empty
+    STA OUTPUT      ; Keep main engine off during stabilization
+
+    JMP start       ; Loop forever

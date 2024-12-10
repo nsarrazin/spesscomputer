@@ -8,7 +8,7 @@
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_cue38"]
 
-[node name="Capsule" type="RigidBody3D"]
+[node name="Capsule" type="RigidBody3D" groups=["affected_by_gravity"]]
 mass = 250.0
 gravity_scale = 0.0
 linear_velocity = Vector3(50, 50, 50)

@@ -66,11 +66,27 @@ func _physics_process(_delta: float) -> void:
 	var rot_y = clamp(remap(euler.y, -PI, PI, 0, 255), 0, 255) as int
 	var rot_z = clamp(remap(euler.z, -PI, PI, 0, 255), 0, 255) as int
 
+	# Get angular velocity from parent rigid body
+	var angular_velocity = Vector3.ZERO
+	if parent is RigidBody3D:
+		angular_velocity = parent.angular_velocity
+		
+	# Map angular velocity components to 0-255 range
+	# Clamp to ±10 rad/s then remap to 0-255
+	angular_velocity = angular_velocity.clamp(Vector3(-10, -10, -10), Vector3(10, 10, 10))
+	var ang_vel_x = int(remap(angular_velocity.x, -10, 10, 0, 255))
+	var ang_vel_y = int(remap(angular_velocity.y, -10, 10, 0, 255)) 
+	var ang_vel_z = int(remap(angular_velocity.z, -10, 10, 0, 255))
+
+
 	emulator.set_memory(0x203, vel_x)
 	emulator.set_memory(0x204, vel_y)
 	emulator.set_memory(0x205, vel_z)
 	emulator.set_memory(0x206, rot_x)
 	emulator.set_memory(0x207, rot_y)
 	emulator.set_memory(0x208, rot_z)
+	emulator.set_memory(0x209, ang_vel_x)
+	emulator.set_memory(0x20A, ang_vel_y)
+	emulator.set_memory(0x20B, ang_vel_z)
 
 	emulator._process(_delta)
