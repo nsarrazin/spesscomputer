@@ -9,7 +9,7 @@ var thruster: Thruster
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	emulator = Emulator6502.create_cpu("demo.bin", 5000)
+	emulator = Emulator6502.create_cpu("binaries/demo.bin", 5000)
 
 	for child in get_parent().get_children():
 		if child.name.contains("Thruster") and child.name != "Thruster":

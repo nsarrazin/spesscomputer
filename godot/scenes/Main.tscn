@@ -48,4 +48,4 @@ transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, -126.493, -519.012, -9.56329)
 
 [node name="Capsule" parent="." instance=ExtResource("1_5j0jt")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1000, 1000, 1000)
-gravity_strength = 1000.0
+mass = 50.0
