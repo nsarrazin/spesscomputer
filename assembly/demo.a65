@@ -4,8 +4,6 @@ ROT_X = $0209
 ROT_Y = $020A
 ROT_Z = $020B
 
-DEADZONE = 1
-
 .ORG $0600
 
 start:
@@ -14,43 +12,41 @@ start:
     
 check_x:
     LDA ROT_X       ; Load X rotation
-    SEC
-    SBC #128        ; Subtract 128 to center around 0
-    BCS x_positive  ; If result is positive, branch
+    CMP #127        ; Compare with 127
+    BEQ check_z     ; If equal, skip to next check
+    BCC x_negative  ; If less than 127, branch
     
-    ; X is negative, need clockwise rotation
-    LDA RCS
-    ORA #%10010000  ; Enable thrusters 0 and 1
-    STA RCS
-    JMP check_y
-
-x_positive:
-    CMP #DEADZONE   ; Compare with deadzone
-    BCC check_y     ; If within deadzone, skip
+    ; X is greater than 127, need clockwise rotation
     LDA RCS
     ORA #%01100000  ; Enable thrusters 2 and 3
     STA RCS
+    JMP check_z
 
-check_y:
-    LDA ROT_Y
-    SEC
-    SBC #128
-    BCS y_positive
+x_negative:
+    ; X is less than 127, need counter-clockwise rotation
+    LDA RCS
+    ORA #%10010000  ; Enable thrusters 0 and 1
+    STA RCS
+
+check_z:
+    LDA ROT_Z       ; Load Z rotation
+    CMP #127        ; Compare with 127
+    BEQ done        ; If equal, skip to done
+    BCC z_negative  ; If less than 127, branch
     
-    ; Y is negative
+    ; Z is greater than 127
     LDA RCS
     ORA #%00000101  ; Enable thrusters 4 and 5
     STA RCS
-    JMP check_z
+    JMP done
 
-y_positive:
-    CMP #DEADZONE
-    BCC check_z
+z_negative:
+    ; Z is less than 127
     LDA RCS
     ORA #%00001010  ; Enable thrusters 6 and 7
     STA RCS
 
-check_z:
+done:
     LDA #0          ; For now, we'll leave Z rotation control empty
     STA OUTPUT      ; Keep main engine off during stabilization
 
