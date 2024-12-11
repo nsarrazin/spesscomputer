@@ -11,3 +11,5 @@ script = ExtResource("1_epcdx")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+
+[node name="OceanMeshInstance3D" type="MeshInstance3D" parent="."]

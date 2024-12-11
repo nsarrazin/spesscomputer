@@ -14,9 +14,9 @@ var orbit_angles = Vector2.ZERO # Stores pitch and yaw angles
 func _ready() -> void:
 	# Initialize with no target
 	if target_node:
-		# Set initial position
-		position = target_node.global_position + Vector3(0, 0, orbit_radius)
-		look_at(target_node.global_position)
+		# Set initial position with slight offset to avoid look_at alignment issues
+		position = target_node.global_position + Vector3(0, 1, orbit_radius) 
+		look_at(target_node.global_position, Vector3.UP)
 
 # Set the target node for the camera to track
 func set_target(node: Node3D) -> void:

@@ -19,7 +19,10 @@ func _physics_process(delta: float):
 	# Find the parent RigidBody
 	var parent = get_parent()
 	if parent and parent is RigidBody3D:
-		parent.apply_force(global_transform.basis.y*force_magnitude, parent.global_position - global_position)
+		parent.apply_force(
+			global_transform.basis.y * force_magnitude,  # Force direction in global coordinates
+			global_position - parent.global_position      # Force position relative to parent's center
+		)
 
 func fire():
 	is_active = true

@@ -3,12 +3,13 @@ RCS = $0201
 ROT_X = $0209
 ROT_Y = $020A
 ROT_Z = $020B
+THRUSTER_BUFFER = $00  ; Zeropage buffer for thruster control
 
 .ORG $0600
 
 start:
-    LDA #0          ; Clear RCS thrusters initially
-    STA RCS
+    LDA #0          ; Clear thruster buffer initially
+    STA THRUSTER_BUFFER
     
 check_x:
     LDA ROT_X       ; Load X rotation
@@ -17,34 +18,38 @@ check_x:
     BCC x_negative  ; If less than 127, branch
     
     ; X is greater than 127, need clockwise rotation
-    LDA RCS
+    LDA THRUSTER_BUFFER
     ORA #%01100000  ; Enable thrusters 2 and 3
-    STA RCS
+    STA THRUSTER_BUFFER
     JMP check_z
 
 x_negative:
     ; X is less than 127, need counter-clockwise rotation
-    LDA RCS
+    LDA THRUSTER_BUFFER
     ORA #%10010000  ; Enable thrusters 0 and 1
-    STA RCS
+    STA THRUSTER_BUFFER
 
 check_z:
     LDA ROT_Z       ; Load Z rotation
     CMP #127        ; Compare with 127
-    BEQ done        ; If equal, skip to done
+    BEQ apply_thrusters ; If equal, skip to apply thrusters
     BCC z_negative  ; If less than 127, branch
     
     ; Z is greater than 127
-    LDA RCS
+    LDA THRUSTER_BUFFER
     ORA #%00000101  ; Enable thrusters 4 and 5
-    STA RCS
-    JMP done
+    STA THRUSTER_BUFFER
+    JMP apply_thrusters
 
 z_negative:
     ; Z is less than 127
-    LDA RCS
+    LDA THRUSTER_BUFFER
     ORA #%00001010  ; Enable thrusters 6 and 7
-    STA RCS
+    STA THRUSTER_BUFFER
+
+apply_thrusters:
+    LDA THRUSTER_BUFFER
+    STA RCS          ; Apply thruster settings to RCS
 
 done:
     LDA #0          ; For now, we'll leave Z rotation control empty

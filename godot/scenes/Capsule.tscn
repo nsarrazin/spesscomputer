@@ -9,9 +9,10 @@
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_cue38"]
 
 [node name="Capsule" type="RigidBody3D" groups=["affected_by_gravity"]]
-mass = 250.0
+mass = 10.0
 gravity_scale = 0.0
 linear_velocity = Vector3(50, 50, 50)
+angular_velocity = Vector3(0, 0, 8.72665)
 script = ExtResource("1_mp2ty")
 
 [node name="Computer" type="Node3D" parent="."]
