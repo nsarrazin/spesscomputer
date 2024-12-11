@@ -1,8 +1,8 @@
 OUTPUT = $0200
 RCS = $0201
-ROT_X = $0209
-ROT_Y = $020A
-ROT_Z = $020B
+ROT_X = $0205
+ROT_Y = $0206
+ROT_Z = $0207
 THRUSTER_BUFFER = $00  ; Zeropage buffer for thruster control
 
 .ORG $0600
@@ -14,7 +14,7 @@ start:
 check_x:
     LDA ROT_X       ; Load X rotation
     CMP #127        ; Compare with 127
-    BEQ check_z     ; If equal, skip to next check
+    BEQ check_z     ; If equal, skip to next check (no thrusters needed)
     BCC x_negative  ; If less than 127, branch
     
     ; X is greater than 127, need clockwise rotation
@@ -32,7 +32,7 @@ x_negative:
 check_z:
     LDA ROT_Z       ; Load Z rotation
     CMP #127        ; Compare with 127
-    BEQ apply_thrusters ; If equal, skip to apply thrusters
+    BEQ apply_thrusters ; If equal, skip to apply thrusters (no thrusters needed)
     BCC z_negative  ; If less than 127, branch
     
     ; Z is greater than 127

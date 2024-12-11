@@ -1,11 +1,23 @@
 extends RigidBody3D
 
+const Computer = preload("res://scenes/Ship/Computer.gd")
+const IMU = preload("res://scenes/Ship/ComputerComponents/IMU/IMU.gd")
+const ThrusterController = preload("res://scenes/Ship/ComputerComponents/ThrusterController/ThrusterController.gd")
 
 @export var planet_node: Node3D = null
+
+
+func _init() -> void:
+	var computer = Computer.new()
+	computer.name = "Computer"
+	add_child(computer)
+	add_child(ThrusterController.new().with_memory_address(0x200))
+	add_child(IMU.new().with_memory_address(0x202))
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	set_initial_speed()
-
+	
 func set_initial_speed() -> void:
 	if not planet_node:
 		return

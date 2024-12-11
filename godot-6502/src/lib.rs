@@ -142,7 +142,7 @@ impl Emulator6502 {
     }
 
     #[func]
-    pub fn _process(&self, delta: f64) {
+    pub fn execute_cycles_for_duration(&self, delta: f64) {
         // Calculate how many CPU cycles to execute based on time delta and target frequency
         let steps = (delta * self.frequency as f64) as u32;
         self.cpu().run_steps_async(steps);
@@ -171,6 +171,13 @@ impl Emulator6502 {
         state.push_str(&format!("SP: {:02x}\n", cpu.lock().unwrap().registers.stack_pointer.0));
         state.push_str(&format!("Status: {:02x}\n", cpu.lock().unwrap().registers.status));
         state
+    }
+
+    #[func]
+    pub fn read_memory(&self, address: u16) -> u8 {
+        let cpu = self.cpu().get_cpu();
+        let mut cpu_guard = cpu.lock().unwrap();
+        cpu_guard.memory.get_byte(address)
     }
 
     #[func]
