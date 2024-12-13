@@ -39,7 +39,7 @@ func run_logic(_delta: float) -> void:
 	if thruster_address == 0:
 		return
 	
-	if (thruster_address - 1) > thruster_nodes.size():
+	if (thruster_address) > thruster_nodes.size():
 		addressBuffer[0] = 0b11000000
 		return
 
