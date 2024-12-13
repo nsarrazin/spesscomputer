@@ -1,0 +1,73 @@
+THRUSTER_BUS = $0200
+
+ANGULAR_RATE_X = $0205
+ANGULAR_RATE_Y = $0206
+ANGULAR_RATE_Z = $0207
+
+ANGLE_X = $0208
+ANGLE_Y = $0209
+ANGLE_Z = $020A
+ACCURACY_ANGLE = $020B
+
+TARGET_X = 64
+TARGET_Y = 64
+TARGET_Z = 64
+
+SLEEP_TIMER = $020C
+CALIBRATION_DONE = $01 ; Flag to indicate calibration is done
+
+CURRENT_RATE_X = $15 ; will contain the current x angular rate
+CURRENT_RATE_Z = $16 ; will contain the current z angular rate
+
+THRUSTER_ID = $10
+
+.ORG $0600
+
+LDA #%00000001
+STA THRUSTER_ID
+start:
+    
+
+    LDA THRUSTER_ID
+    ORA #%11000000
+    JSR send_thruster_command    
+    JSR idle_long_enough
+
+
+    LDA THRUSTER_ID
+    AND #%00111111
+    JSR send_thruster_command
+    JSR idle_long_enough
+
+
+    INC THRUSTER_ID
+    JMP start
+
+idle_long_enough:
+    JSR idle_for_frames
+    JSR idle_for_frames
+    JSR idle_for_frames
+    JSR idle_for_frames
+    JSR idle_for_frames
+    JSR idle_for_frames
+    JSR idle_for_frames
+    JSR idle_for_frames
+
+idle_for_frames:
+    LDA #255
+    STA SLEEP_TIMER
+loop:
+    DEC SLEEP_TIMER   ; decrease timer
+    BNE loop          ; if not zero, keep looping
+    RTS               ; return when done
+
+
+send_thruster_command:
+    STA THRUSTER_BUS ; then infinite loop until the thruster buffer says 01000000
+fire_loop:
+    LDA THRUSTER_BUS
+    AND #%00111111     ; mask off first two bits
+    CMP #%00000000     ; when the message has ben processed, the address will be XX000000 with XX being the response code
+    BNE fire_loop
+    LDA THRUSTER_BUS ; read the response code
+    RTS

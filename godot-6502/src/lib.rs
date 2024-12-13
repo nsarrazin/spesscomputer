@@ -58,7 +58,7 @@ impl CPUWrapper {
         let (lock, cvar) = &*self.completion_cvar;
         let mut completed = lock.lock().unwrap();
         while *completed {
-            godot_warn!("Waiting for CPU to finish previous processing... Is the server lagging?");
+            // godot_warn!("Waiting for CPU to finish previous processing... Is the server lagging?");
             completed = cvar.wait(completed).unwrap();
         }
     }
@@ -86,14 +86,13 @@ impl Orchestrator {
         }
     }
 
-    pub fn create_cpu_from_file(&mut self, path: String) -> Uuid {
+    pub fn create_cpu(&mut self, start_address: u16, program: Vec<u8>) -> Uuid {
         let key = uuid::Uuid::new_v4();
 
         let cpu = Arc::new(Mutex::new(CPU::new(Memory::new(), Nmos6502)));
 
-        let program = std::fs::read(path).unwrap();
-        cpu.lock().unwrap().memory.set_bytes(0x0600, &program);
-        cpu.lock().unwrap().registers.program_counter = 0x0600;
+        cpu.lock().unwrap().memory.set_bytes(start_address, &program);
+        cpu.lock().unwrap().registers.program_counter = start_address;
 
         self.cpus.insert(key, CPUWrapper {
             cpu,
@@ -125,8 +124,9 @@ struct Emulator6502 {
 #[godot_api]
 impl Emulator6502 {
     #[func]
-    pub fn create_cpu(path: String, frequency: i32) -> Gd<Self> {
-        let key = ORCHESTRATOR.lock().unwrap().create_cpu_from_file(path);
+    pub fn create_cpu_from_source(path: String, frequency: i32) -> Gd<Self> {
+        let program = compile_assembly(path);
+        let key = ORCHESTRATOR.lock().unwrap().create_cpu(0x0600, program);
         return Gd::from_object(Emulator6502 {
             key: key.to_string(),
             frequency
@@ -216,4 +216,70 @@ impl Emulator6502 {
 //     fn drop(&mut self) {
 //         ORCHESTRATOR.lock().unwrap().remove_cpu(Uuid::parse_str(&self.key).unwrap());
 //     }
-// }
+// 
+
+
+fn compile_assembly(path: String) -> Vec<u8> {
+    use std::fs;
+    use std::path::PathBuf;
+
+    godot_print!("Compiling assembly from {}", path);
+
+    let pathbuf = PathBuf::from(path.clone());
+    let assembly = std::fs::read_to_string(&path).expect("Failed to read assembly file");
+    
+    // Create temp directory path
+    let tmp_dir = std::env::temp_dir().join("godot-6502-compile");
+    fs::create_dir_all(&tmp_dir).expect("Failed to create temp directory");
+
+    // Copy assembly file to temp directory
+    let tmp_asm = tmp_dir.join("temp.a65");
+    fs::write(&tmp_asm, assembly).expect("Failed to write temp assembly file");
+
+    // Copy linker config to temp directory
+    let linker_cfg = pathbuf.parent().unwrap().join("linker.cfg");
+    if !linker_cfg.exists() {
+        panic!("Linker config file not found at {:?}", linker_cfg);
+    }
+    fs::copy(&linker_cfg, tmp_dir.join("linker.cfg")).expect("Failed to copy linker config");
+
+    // Compile assembly
+    let ca65_output = std::process::Command::new("ca65")
+        .current_dir(&tmp_dir)
+        .arg("temp.a65")
+        .output()
+        .expect("Failed to execute ca65 - is it installed?");
+
+    if !ca65_output.status.success() {
+        // Clean up temp directory before panicking
+        fs::remove_dir_all(tmp_dir).expect("Failed to clean up temp directory");
+        panic!("ca65 failed: {}", String::from_utf8_lossy(&ca65_output.stderr));
+    }
+
+    // Link object file
+    let ld65_output = std::process::Command::new("ld65")
+        .current_dir(&tmp_dir)
+        .arg("-C")
+        .arg("linker.cfg")
+        .arg("-o")
+        .arg("temp.bin")
+        .arg("temp.o")
+        .output()
+        .expect("Failed to execute ld65 - is it installed?");
+
+    if !ld65_output.status.success() {
+        // Clean up temp directory before panicking
+        fs::remove_dir_all(tmp_dir).expect("Failed to clean up temp directory");
+        panic!("ld65 failed: {}", String::from_utf8_lossy(&ld65_output.stderr));
+    }
+
+    godot_print!("Compiled assembly to {:?}", tmp_dir.join("temp.bin"));
+
+    // Read binary file into Vec<u8>
+    let binary = fs::read(tmp_dir.join("temp.bin")).expect("Failed to read binary file");
+
+    // Clean up temp directory
+    fs::remove_dir_all(tmp_dir).expect("Failed to clean up temp directory");
+
+    binary
+}
