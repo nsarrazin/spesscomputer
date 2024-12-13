@@ -36,6 +36,7 @@ height = 0.1
 
 [node name="Thruster" type="Node3D"]
 script = ExtResource("1_4sguc")
+is_active = false
 
 [node name="Space engine" parent="." instance=ExtResource("1_gmtdu")]
 transform = Transform3D(0.1, 0, 0, 0, -4.37114e-09, 0.1, 0, -0.1, -4.37114e-09, 0, -0.775179, 0.481939)

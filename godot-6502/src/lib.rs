@@ -149,6 +149,11 @@ impl Emulator6502 {
     }
 
     #[func]
+    pub fn step(&self) {
+        self.cpu().run_step();
+    }
+
+    #[func]
     pub fn get_mmio(&self) -> Array<u8> {
         let cpu = self.cpu().get_cpu();
         let mut memory = cpu.lock().unwrap().memory;
@@ -171,6 +176,18 @@ impl Emulator6502 {
         state.push_str(&format!("SP: {:02x}\n", cpu.lock().unwrap().registers.stack_pointer.0));
         state.push_str(&format!("Status: {:02x}\n", cpu.lock().unwrap().registers.status));
         state
+    }
+
+    #[func]
+    pub fn read_page(&self, page: u8) -> Array<u8> {
+        let cpu = self.cpu().get_cpu();
+        let mut memory = cpu.lock().unwrap().memory;
+        let mut result = Array::new();
+        let page_address = (page as u16 * 256) as u16;
+        for i in 0..256 {
+            result.push(memory.get_byte(page_address + i as u16));
+        }
+        result
     }
 
     #[func]

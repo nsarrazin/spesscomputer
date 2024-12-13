@@ -47,8 +47,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3500, 3500, 3500)
 mass = 2500.0
 can_sleep = false
 linear_velocity = Vector3(0, 0, 0)
-angular_velocity = Vector3(8.72665, 0, 8.72665)
+angular_velocity = Vector3(0, 0, 0)
 planet_node = NodePath("../Planet")
 
 [node name="Planet" parent="." instance=ExtResource("4_hrnxs")]
-radius = 2500.0
+radius = 3000.0
+rotation_speed = 0.1
+gravitational_pull = 1e+08

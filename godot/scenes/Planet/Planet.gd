@@ -11,6 +11,7 @@ extends Node3D
 var noise = FastNoiseLite.new()
 var noise2 = FastNoiseLite.new() 
 var noise3 = FastNoiseLite.new()
+var noise4 = FastNoiseLite.new()
 var surface_tool = SurfaceTool.new()
 var ocean_surface_tool = SurfaceTool.new()
 var mesh = ArrayMesh.new()
@@ -26,6 +27,9 @@ func _ready() -> void:
 	
 	noise3.seed = randi()
 	noise3.frequency = 0.001*radius
+
+	noise4.seed = randi()
+	noise4.frequency = 0.01*radius
 	
 	# Generate planet mesh
 	generate_planet_mesh()
@@ -76,8 +80,8 @@ func generate_ocean_mesh() -> void:
 	
 	# Create transparent ocean material
 	var ocean_material = StandardMaterial3D.new()
-	ocean_material.albedo_color = Color(0.2, 0.5, 0.8, 0.3)
-	ocean_material.roughness = 0.1
+	ocean_material.albedo_color = Color(0.2, 0.5, 0.8, 0.9)
+	ocean_material.roughness = 0.3
 	ocean_material.metallic = 0.3
 	ocean_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	
@@ -109,8 +113,15 @@ func generate_planet_mesh() -> void:
 			var noise_val = noise.get_noise_3d(point.x, point.y, point.z) * noise_scale
 			noise_val += noise2.get_noise_3d(point.x * 2, point.y * 2, point.z * 2) * (noise_scale * 0.1)
 			noise_val += noise3.get_noise_3d(point.x * 4, point.y * 4, point.z * 4) * (noise_scale * 0.01)
+
+			# Add mountain ranges using clipped noise
+			var mountain_noise = noise4.get_noise_3d(point.x/100, point.y/100, point.z/100)
+			# Clip low values and offset to create distinct ranges
+			if mountain_noise <= 0.1:
+				mountain_noise = 0
 			
-			point = point * (radius + noise_val)
+			point = point * (radius + noise_val + mountain_noise)
+
 			vertices.append(point)
 			
 			var uv = Vector2(float(lon) / (segments * 2), float(lat) / segments)
