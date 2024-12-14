@@ -62,4 +62,8 @@ func _update_camera_position() -> void:
 	
 	# Update camera position and look at target
 	position = target_node.global_position + new_pos
-	look_at(target_node.global_position)
+
+	if abs(new_pos.x) < 0.001 and abs(new_pos.z) < 0.001:
+		return
+	else:
+		look_at(target_node.global_position, Vector3.UP)

@@ -17,9 +17,6 @@ func _process(delta: float) -> void:
 
 	if !pause:
 		emulator.execute_cycles_for_duration(delta)
-
-		# emulator.wait_until_done()
-
 func pause_emulator() -> void:
 	pause = true
 
