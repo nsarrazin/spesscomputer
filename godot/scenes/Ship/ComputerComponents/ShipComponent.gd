@@ -30,7 +30,7 @@ func _ready() -> void:
 	add_to_group("ship_component")
 	
 
-func run_logic(delta: float) -> void:
+func run_logic(_delta: float) -> void:
 	pass
 
 func _physics_process(delta: float) -> void:

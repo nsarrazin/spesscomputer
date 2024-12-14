@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-godot = "0.2.1"
 lazy_static = "1.5.0"
 mos6502 = "0.6.1"
 spin_sleep = "1.2.1"
@@ -18,4 +17,11 @@ features = [
     "v4",                # Lets you generate random UUIDs
     "fast-rng",          # Use a faster (but still sufficiently random) RNG
     "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+]
+
+[dependencies.godot]
+version = "0.2.1"
+features = [
+    "api-custom",
+    "double-precision"
 ]

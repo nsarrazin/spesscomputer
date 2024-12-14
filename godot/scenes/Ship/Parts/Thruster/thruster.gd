@@ -8,7 +8,7 @@ extends Node3D
 # Reference to visual elements
 @onready var visual_effect = $GPUParticles3D
 
-func _physics_process(delta: float):		
+func _physics_process(_delta: float):		
 	# Update visual effects
 	if visual_effect:
 		visual_effect.emitting = is_active

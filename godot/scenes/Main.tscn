@@ -19,9 +19,10 @@ ambient_light_source = 2
 ambient_light_color = Color(0.650128, 0.650128, 0.650128, 1)
 glow_enabled = true
 
-[node name="Test" type="Node3D" groups=["affected_by_gravity"]]
+[node name="Test" type="Node3D" node_paths=PackedStringArray("planet") groups=["affected_by_gravity"]]
 script = ExtResource("1_24mpf")
 capsule_scene = ExtResource("1_5j0jt")
+planet = NodePath("Planet")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.999816, -0.0130926, 0.0140401, 0, 0.731354, 0.681998, -0.0191974, 0.681873, -0.731219, 0, 0, 0)
@@ -51,6 +52,7 @@ angular_velocity = Vector3(0, 0, 0)
 planet_node = NodePath("../Planet")
 
 [node name="Planet" parent="." instance=ExtResource("4_hrnxs")]
+transform = Transform3D(0.428786, 0, 0.903406, 0, 1, 0, -0.903406, 0, 0.428786, 0, 0, 0)
 radius = 3000.0
 rotation_speed = 0.1
 gravitational_pull = 1e+08

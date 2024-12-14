@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://d1he7h6c2ifoi"]
 
-[ext_resource type="Script" path="res://scenes/Ship/Ship.gd" id="1_mp2ty"]
+[ext_resource type="Script" uid="uid://odw154y77qd5" path="res://scenes/Ship/Ship.gd" id="1_mp2ty"]
 [ext_resource type="PackedScene" uid="uid://ffrn27kk0cdb" path="res://scenes/Ship/Parts/Thruster/Thruster.tscn" id="3_e3yg7"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1jktp"]

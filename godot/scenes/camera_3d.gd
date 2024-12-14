@@ -48,7 +48,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_update_camera_position()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if target_node:
 		_update_camera_position()
 
