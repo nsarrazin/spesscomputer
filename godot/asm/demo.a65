@@ -21,122 +21,95 @@ THRUSTER_ZERO = $0210
 .ORG $0600
 
 start:
+    JMP main_loop
+
+main_loop:
+    LDY #255
+    JSR control_x_loop
+    JSR control_y_loop
+    JSR control_z_loop
+    ; JSR main_thruster_loop
+    JMP main_loop
+
+
+control_x_loop:
+    LDA ANGULAR_RATE_X
+    CMP #127
+    BEQ x_done
+    BPL x_minus
+    JMP x_plus
+x_plus:
+    LDY #0
+    JSR rot_x_minus
     LDY #255
     JSR rot_x_plus
-    JSR idle_long_enough
-
+    RTS
+x_minus:
     LDY #0
     JSR rot_x_plus
-    JSR idle_long_enough
-
     LDY #255
     JSR rot_x_minus
-    JSR idle_long_enough
-
+    RTS
+x_done:
+    LDY #0
+    JSR rot_x_plus
     LDY #0
     JSR rot_x_minus
-    JSR idle_long_enough
+    RTS
 
-    LDY #255
-    JSR rot_y_plus
-    JSR idle_long_enough
-
-    LDY #0
-    JSR rot_y_plus
-    JSR idle_long_enough 
-
-    LDY #255
-    JSR rot_y_minus
-    JSR idle_long_enough
-
+control_y_loop:
+    LDA ANGULAR_RATE_Y
+    CMP #127
+    BEQ y_done
+    BPL y_minus
+    JMP y_plus
+y_plus:
     LDY #0
     JSR rot_y_minus
-    JSR idle_long_enough
+    LDY #255
+    JSR rot_y_plus
+    RTS
+y_minus:
+    LDY #0
+    JSR rot_y_plus
+    LDY #255
+    JSR rot_y_minus
+    RTS
+y_done:
+    LDY #0
+    JSR rot_y_plus
+    LDY #0
+    JSR rot_y_minus
+    RTS
 
+control_z_loop:
+    LDA ANGULAR_RATE_Z
+    CMP #127
+    BEQ z_done
+    BPL z_minus
+    JMP z_plus
+z_plus:
+    LDY #0
+    JSR rot_z_minus
     LDY #255
     JSR rot_z_plus
-    JSR idle_long_enough
-
+    RTS
+z_minus:
     LDY #0
     JSR rot_z_plus
-    JSR idle_long_enough  
-
     LDY #255
     JSR rot_z_minus
-    JSR idle_long_enough
-
+    RTS
+z_done:
+    LDY #0
+    JSR rot_z_plus
     LDY #0
     JSR rot_z_minus
-    JSR idle_long_enough
+    RTS
 
-    LDY #255
-    JSR trans_x_plus
-    JSR idle_long_enough
 
-    LDY #0
-    JSR trans_x_plus
-    JSR idle_long_enough
-
-    LDY #255
-    JSR trans_x_minus
-    JSR idle_long_enough
-
-    LDY #0
-    JSR trans_x_minus
-    JSR idle_long_enough
-
-    LDY #255
-    JSR trans_y_plus
-    JSR idle_long_enough
-
-    LDY #0
-    JSR trans_y_plus
-    JSR idle_long_enough
-
-    LDY #255
-    JSR trans_y_minus
-    JSR idle_long_enough
-
-    LDY #0
-    JSR trans_y_minus
-    JSR idle_long_enough
-
-    LDY #255
-    JSR trans_z_plus
-    JSR idle_long_enough
-
-    LDY #0
-    JSR trans_z_plus
-    JSR idle_long_enough
-
-    LDY #255
-    JSR trans_z_minus
-    JSR idle_long_enough
-
-    LDY #0
-    JSR trans_z_minus
-    JSR idle_long_enough
-
-    JMP start
-
-idle_long_enough:
-    JSR idle_for_frames
-    JSR idle_for_frames
-    JSR idle_for_frames
-    JSR idle_for_frames
-    JSR idle_for_frames
-    JSR idle_for_frames
-    JSR idle_for_frames
-    JSR idle_for_frames
-
-idle_for_frames:
-    LDA #255
-    STA SLEEP_TIMER
-loop:
-    DEC SLEEP_TIMER   ; decrease timer
-    BNE loop          ; if not zero, keep looping
-    RTS               ; return when done
-
+main_thruster_loop:
+    RTS
 
 ; get the strength of the thrust in register Y
 ; get the address of the thruster to fire in register X
