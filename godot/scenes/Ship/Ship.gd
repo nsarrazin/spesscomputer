@@ -12,9 +12,9 @@ func _init() -> void:
 	var computer = Computer.new()
 	computer.name = "Computer"
 	add_child(computer)
-	add_child(ThrusterController.new().with_memory_address(0x200))
-	add_child(IMU.new().with_memory_address(0x202))
-	add_child(StarTracker.new().with_memory_address(0x208))
+	add_child(IMU.new().with_memory_address(0x200))
+	add_child(StarTracker.new().with_memory_address(0x206))
+	add_child(ThrusterController.new().with_memory_address(0x210))
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	set_initial_speed()
