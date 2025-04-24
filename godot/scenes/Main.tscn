@@ -1,10 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://dmow5ogajbtl5"]
+[gd_scene load_steps=10 format=3 uid="uid://dmow5ogajbtl5"]
 
 [ext_resource type="PackedScene" uid="uid://d1he7h6c2ifoi" path="res://scenes/Ship/Ship.tscn" id="1_5j0jt"]
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_24mpf"]
 [ext_resource type="Texture2D" uid="uid://dtlptku1k7pm1" path="res://art/images/space_background.webp" id="1_n0ryh"]
 [ext_resource type="Script" path="res://scenes/camera_3d.gd" id="2_oytva"]
 [ext_resource type="PackedScene" uid="uid://dt0sit4eidov4" path="res://scenes/Planet/Planet.tscn" id="4_hrnxs"]
+[ext_resource type="Script" path="res://scenes/debug_ui.gd" id="6_1srax"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_qv8dj"]
 panorama = ExtResource("1_n0ryh")
@@ -56,3 +57,7 @@ transform = Transform3D(0.428786, 0, 0.903406, 0, 1, 0, -0.903406, 0, 0.428786, 
 radius = 3000.0
 rotation_speed = 0.1
 gravitational_pull = 1e+08
+
+[node name="DebugUI" type="Node" parent="." node_paths=PackedStringArray("camera")]
+script = ExtResource("6_1srax")
+camera = NodePath("../Camera3D")

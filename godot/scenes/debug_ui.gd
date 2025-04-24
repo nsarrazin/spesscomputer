@@ -80,39 +80,14 @@ func _process(_delta):
 			
 			if pc_in_current_page and current_address == pc_address:
 				ImGui.PopStyleColor()
-			
+				ImGui.PopStyleColor()
 			ImGui.SameLine()
 			
 			# Add extra space after 8 bytes for readability
 			if col == 7:
 				ImGui.Text(" ")
 				ImGui.SameLine()
-		
-		# Separator between hex and ASCII
-		ImGui.Text("|")
-		ImGui.SameLine()
-		
-		# Create ASCII representation
-		for col in range(bytes_per_row):
-			var byte_index = offset + col
-			var byte_value = page_data[byte_index]
-			var current_address = active_page * 256 + byte_index
-			var char_to_display = "."
-			
-			if byte_value >= 32 and byte_value <= 126: # Printable ASCII range
-				char_to_display = char(byte_value)
-			
-			# Highlight the current PC position
-			if pc_in_current_page and current_address == pc_address:
-				ImGui.PushStyleColor(ImGui.Col.Col_Text, Color(1, 0.5, 0, 1)) # Orange highlight
-			
-			ImGui.Text(char_to_display)
-			
-			if pc_in_current_page and current_address == pc_address:
-				ImGui.PopStyleColor()
-			
-			ImGui.SameLine()
-		
+
 		# Remove the last SameLine since we're done with this row
 		ImGui.NewLine()
 	ImGui.End()
