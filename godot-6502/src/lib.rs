@@ -1,14 +1,16 @@
 use godot::prelude::*;
-use std::sync::{Arc, Mutex, Condvar};
+use mos6502::cpu::CPU;
+use mos6502::instruction::Nmos6502;
 use mos6502::memory::Bus;
 use mos6502::memory::Memory;
-use mos6502::instruction::Nmos6502;
-use mos6502::cpu::CPU;
+use std::sync::{Arc, Condvar, Mutex};
 
 use uuid::Uuid;
 
 use lazy_static::lazy_static;
 use std::collections::HashMap;
+
+pub mod asm6502;
 
 #[derive(Clone)]
 struct CPUWrapper {
@@ -36,16 +38,16 @@ impl CPUWrapper {
         let cpu = self.cpu.clone();
         let is_running = self.is_running.clone();
         let completion_cvar = self.completion_cvar.clone();
-        
+
         let (lock, cvar) = &*completion_cvar;
         *is_running.lock().unwrap() = true;
         *lock.lock().unwrap() = true;
-        
+
         std::thread::spawn(move || {
             for _ in 0..steps {
                 cpu.lock().unwrap().single_step();
             }
-            
+
             let (lock, cvar) = &*completion_cvar;
             let mut completed = lock.lock().unwrap();
             *completed = false;
@@ -65,13 +67,13 @@ impl CPUWrapper {
 }
 
 struct Orchestrator {
-    cpus: HashMap<Uuid, CPUWrapper>
+    cpus: HashMap<Uuid, CPUWrapper>,
 }
 
 impl Orchestrator {
     pub fn new() -> Self {
         Self {
-            cpus: HashMap::new()
+            cpus: HashMap::new(),
         }
     }
 
@@ -82,7 +84,7 @@ impl Orchestrator {
     pub fn get_cpu(&self, key: Uuid) -> &CPUWrapper {
         match self.cpus.get(&key) {
             Some(cpu_wrapper) => cpu_wrapper,
-            None => panic!("No CPU found for key {}", key)
+            None => panic!("No CPU found for key {}", key),
         }
     }
 
@@ -91,14 +93,20 @@ impl Orchestrator {
 
         let cpu = Arc::new(Mutex::new(CPU::new(Memory::new(), Nmos6502)));
 
-        cpu.lock().unwrap().memory.set_bytes(start_address, &program);
+        cpu.lock()
+            .unwrap()
+            .memory
+            .set_bytes(start_address, &program);
         cpu.lock().unwrap().registers.program_counter = start_address;
 
-        self.cpus.insert(key, CPUWrapper {
-            cpu,
-            is_running: Arc::new(Mutex::new(false)),
-            completion_cvar: Arc::new((Mutex::new(false), Condvar::new())),
-        });
+        self.cpus.insert(
+            key,
+            CPUWrapper {
+                cpu,
+                is_running: Arc::new(Mutex::new(false)),
+                completion_cvar: Arc::new((Mutex::new(false), Condvar::new())),
+            },
+        );
 
         return key;
     }
@@ -113,12 +121,11 @@ struct MyExtension;
 #[gdextension]
 unsafe impl ExtensionLibrary for MyExtension {}
 
-
 #[derive(GodotClass)]
 #[class(init, base=Node3D)]
 struct Emulator6502 {
     key: String,
-    frequency: i32
+    frequency: i32,
 }
 
 #[godot_api]
@@ -129,11 +136,31 @@ impl Emulator6502 {
         let key = ORCHESTRATOR.lock().unwrap().create_cpu(0x0600, program);
         return Gd::from_object(Emulator6502 {
             key: key.to_string(),
-            frequency
-        })
+            frequency,
+        });
     }
 
-    fn cpu(&self) -> CPUWrapper {   
+    #[func]
+    pub fn create_cpu_from_string(assembly_code: String, frequency: i32) -> Gd<Self> {
+        let program = match asm6502::assemble_string(&assembly_code) {
+            Ok(bytes) if !bytes.is_empty() => {
+                godot_print!("Successfully compiled assembly from string");
+                bytes
+            }
+            _ => {
+                godot_error!("Failed to compile assembly from string");
+                Vec::new()
+            }
+        };
+
+        let key = ORCHESTRATOR.lock().unwrap().create_cpu(0x0600, program);
+        return Gd::from_object(Emulator6502 {
+            key: key.to_string(),
+            frequency,
+        });
+    }
+
+    fn cpu(&self) -> CPUWrapper {
         let key = Uuid::parse_str(&self.key).unwrap();
         let guard = ORCHESTRATOR.lock().unwrap();
         let cpu = guard.get_cpu(key).clone();
@@ -165,16 +192,18 @@ impl Emulator6502 {
     }
 
     #[func]
-    pub fn get_cpu_state(&self) -> String {
+    pub fn get_cpu_state(&self) -> Dictionary {
         let cpu = self.cpu().get_cpu();
-        let mut state = String::new();
-        state.push_str(&format!("PC: {:04x}\n", cpu.lock().unwrap().registers.program_counter));
-        state.push_str(&format!("A: {:02x}\n", cpu.lock().unwrap().registers.accumulator));
-        state.push_str(&format!("X: {:02x}\n", cpu.lock().unwrap().registers.index_x));
-        state.push_str(&format!("Y: {:02x}\n", cpu.lock().unwrap().registers.index_y));
-        state.push_str(&format!("P: {:02x}\n", cpu.lock().unwrap().registers.status));
-        state.push_str(&format!("SP: {:02x}\n", cpu.lock().unwrap().registers.stack_pointer.0));
-        state.push_str(&format!("Status: {:02x}\n", cpu.lock().unwrap().registers.status));
+        let cpu_guard = cpu.lock().unwrap();
+
+        let mut state = Dictionary::new();
+        let _ = state.insert("pc", cpu_guard.registers.program_counter);
+        let _ = state.insert("a", cpu_guard.registers.accumulator);
+        let _ = state.insert("x", cpu_guard.registers.index_x);
+        let _ = state.insert("y", cpu_guard.registers.index_y);
+        let _ = state.insert("p", cpu_guard.registers.status.bits());
+        let _ = state.insert("sp", cpu_guard.registers.stack_pointer.0);
+
         state
     }
 
@@ -210,14 +239,12 @@ impl Emulator6502 {
     }
 }
 
-
 // this causes a panic for some reason
 // impl Drop for Emulator6502 {
 //     fn drop(&mut self) {
 //         ORCHESTRATOR.lock().unwrap().remove_cpu(Uuid::parse_str(&self.key).unwrap());
 //     }
-// 
-
+//
 
 fn compile_assembly(path: String) -> Vec<u8> {
     use std::fs;
@@ -227,7 +254,7 @@ fn compile_assembly(path: String) -> Vec<u8> {
 
     let pathbuf = PathBuf::from(path.clone());
     let assembly = std::fs::read_to_string(&path).expect("Failed to read assembly file");
-    
+
     // Create temp directory path
     let tmp_dir = std::env::temp_dir().join("godot-6502-compile");
     fs::create_dir_all(&tmp_dir).expect("Failed to create temp directory");
@@ -253,7 +280,10 @@ fn compile_assembly(path: String) -> Vec<u8> {
     if !ca65_output.status.success() {
         // Clean up temp directory before panicking
         fs::remove_dir_all(tmp_dir).expect("Failed to clean up temp directory");
-        panic!("ca65 failed: {}", String::from_utf8_lossy(&ca65_output.stderr));
+        panic!(
+            "ca65 failed: {}",
+            String::from_utf8_lossy(&ca65_output.stderr)
+        );
     }
 
     // Link object file
@@ -270,7 +300,10 @@ fn compile_assembly(path: String) -> Vec<u8> {
     if !ld65_output.status.success() {
         // Clean up temp directory before panicking
         fs::remove_dir_all(tmp_dir).expect("Failed to clean up temp directory");
-        panic!("ld65 failed: {}", String::from_utf8_lossy(&ld65_output.stderr));
+        panic!(
+            "ld65 failed: {}",
+            String::from_utf8_lossy(&ld65_output.stderr)
+        );
     }
 
     godot_print!("Compiled assembly to {:?}", tmp_dir.join("temp.bin"));
