@@ -4,6 +4,8 @@ var shipComponents: Array = []
 var emulator: Emulator6502 = Emulator6502.create_cpu_from_string("""
 THRUSTER_ZERO = $0212
 
+.org $0600
+
 main_loop:
 	LDA #24                  ; Load thruster value 8
 	STA THRUSTER_ZERO       ; Set thruster to 8

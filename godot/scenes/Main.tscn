@@ -15,9 +15,12 @@ sky_material = SubResource("PanoramaSkyMaterial_qv8dj")
 
 [sub_resource type="Environment" id="Environment_qborp"]
 background_mode = 2
+background_energy_multiplier = 4.4
 sky = SubResource("Sky_lcdlc")
 ambient_light_source = 2
-ambient_light_color = Color(0.650128, 0.650128, 0.650128, 1)
+ambient_light_color = Color(0.2915, 0.360433, 0.55, 1)
+ssao_enabled = true
+sdfgi_read_sky_light = false
 glow_enabled = true
 
 [node name="Test" type="Node3D" node_paths=PackedStringArray("planet") groups=["affected_by_gravity"]]
@@ -46,7 +49,7 @@ max_zoom = 100.0
 
 [node name="Ship" parent="." node_paths=PackedStringArray("planet_node") instance=ExtResource("1_5j0jt")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3500, 3500, 3500)
-mass = 2500.0
+mass = 500.0
 can_sleep = false
 linear_velocity = Vector3(0, 0, 0)
 angular_velocity = Vector3(0, 0, 0)

@@ -10,7 +10,7 @@ extends ShipComponent
 func _init() -> void:
 	memory_size = 1
 
-func run_logic(delta):
+func run_logic(_delta):
 	var buffer = addressBuffer[0]
 
 	exhaust.emitting = buffer & 0b0001
