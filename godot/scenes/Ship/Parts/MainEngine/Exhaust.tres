@@ -40,3 +40,4 @@ scale_curve = SubResource("CurveTexture_7kr77")
 color_ramp = SubResource("GradientTexture1D_qfqcq")
 emission_curve = SubResource("CurveTexture_d0twq")
 turbulence_noise_scale = 0.0
+sub_emitter_keep_velocity = true

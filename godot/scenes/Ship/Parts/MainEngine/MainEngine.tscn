@@ -32,6 +32,7 @@ amount = 250
 lifetime = 0.5
 randomness = 0.2
 visibility_aabb = AABB(-4, -4, -4, 8, 4, 8)
+local_coords = true
 trail_lifetime = 3.95
 process_material = ExtResource("3_mnjhp")
 draw_pass_1 = SubResource("QuadMesh_71x68")

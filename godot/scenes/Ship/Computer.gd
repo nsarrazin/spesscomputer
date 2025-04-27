@@ -2,7 +2,7 @@ extends Node3D
 
 var shipComponents: Array = []
 var emulator: Emulator6502 = Emulator6502.create_cpu_from_string("""
-THRUSTER_ZERO = $0212
+THRUSTER_ZERO = $020A
 
 .org $0600
 
