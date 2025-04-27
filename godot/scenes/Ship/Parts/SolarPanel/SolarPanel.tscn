@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://cfbmnc5vau2qe"]
+
+[ext_resource type="Script" path="res://scenes/Ship/Parts/SolarPanel/solar_panel.gd" id="1_dn5it"]
+[ext_resource type="ArrayMesh" uid="uid://wva2yyod6wkd" path="res://art/models/Lander/SolarPanel.res" id="2_fnrqq"]
+
+[node name="SolarPanel" type="Node3D"]
+script = ExtResource("1_dn5it")
+
+[node name="SolarPanel" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, -1.34456, 1.19864)
+mesh = ExtResource("2_fnrqq")

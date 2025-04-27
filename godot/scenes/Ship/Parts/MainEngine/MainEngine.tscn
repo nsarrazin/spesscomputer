@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3 uid="uid://dbxok8t5f1pwi"]
+
+[ext_resource type="Script" path="res://scenes/Ship/Parts/MainEngine/main_engine.gd" id="1_ngowk"]
+[ext_resource type="ArrayMesh" uid="uid://bn4dh3m25iuup" path="res://art/models/Lander/MainEngine.res" id="2_g2ibd"]
+[ext_resource type="Material" uid="uid://t4mgakvq3mr0" path="res://scenes/Ship/Parts/MainEngine/Exhaust.tres" id="3_mnjhp"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a3ulc"]
+transparency = 2
+alpha_scissor_threshold = 0.0
+alpha_antialiasing_mode = 0
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_71x68"]
+material = SubResource("StandardMaterial3D_a3ulc")
+size = Vector2(0.25, 0.25)
+
+[node name="MainEngine" type="Node3D"]
+script = ExtResource("1_ngowk")
+
+[node name="MainEngine" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.24838, 0)
+mesh = ExtResource("2_g2ibd")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.184908, 0)
+emitting = false
+amount = 250
+lifetime = 0.5
+randomness = 0.2
+visibility_aabb = AABB(-4, -4, -4, 8, 4, 8)
+process_material = ExtResource("3_mnjhp")
+draw_pass_1 = SubResource("QuadMesh_71x68")

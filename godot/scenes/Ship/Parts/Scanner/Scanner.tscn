@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://p38nfdvptu01"]
+
+[ext_resource type="ArrayMesh" uid="uid://uaamqe8xlac6" path="res://art/models/Lander/Scanner.res" id="1_iq4er"]
+[ext_resource type="Script" path="res://scenes/Ship/Parts/Scanner/scanner.gd" id="1_ql60w"]
+
+[node name="Scanner" type="Node3D"]
+script = ExtResource("1_ql60w")
+
+[node name="Scanner" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.863909, -0.958728)
+mesh = ExtResource("1_iq4er")

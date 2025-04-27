@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://dnvyusecte1jf"]
+
+[ext_resource type="Script" path="res://scenes/Ship/Parts/Camera/camera.gd" id="1_iwhl7"]
+[ext_resource type="ArrayMesh" uid="uid://br5x2ft2dyuv3" path="res://art/models/Lander/Camera.res" id="1_tkjn8"]
+
+[node name="Camera" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0241227, 0)
+script = ExtResource("1_iwhl7")
+
+[node name="Camera" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.984714, -1.26077, -0.0107981)
+mesh = ExtResource("1_tkjn8")
