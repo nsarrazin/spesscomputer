@@ -77,16 +77,16 @@ transform = Transform3D(6.12323e-17, 0, 1, 0, 1, 0, -1, 0, 6.12323e-17, -0.00162
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000406511, 1.75622, 0.000648727)
 
 [node name="ThrusterQuad" parent="." instance=ExtResource("7_ksf0g")]
-transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, 0.890547, 0.799914, -0.876744)
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 0.890547, 0.799914, -0.876744)
 
 [node name="ThrusterQuad2" parent="." instance=ExtResource("7_ksf0g")]
-transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 0.891, 0.8, 0.877)
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0.891, 0.8, 0.877)
 
 [node name="ThrusterQuad3" parent="." instance=ExtResource("7_ksf0g")]
-transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -0.891, 0.8, 0.877)
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -0.891, 0.8, 0.877)
 
 [node name="ThrusterQuad4" parent="." instance=ExtResource("7_ksf0g")]
-transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -0.891, 0.8, -0.877)
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -0.891, 0.8, -0.877)
 
 [node name="SolarPanel" parent="." instance=ExtResource("8_kp43v")]
 transform = Transform3D(6.12323e-17, 0, 1, 0, 1, 0, -1, 0, 6.12323e-17, -1, 1.26399, -0.00169204)

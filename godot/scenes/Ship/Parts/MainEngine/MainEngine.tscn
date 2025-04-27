@@ -4,7 +4,7 @@
 [ext_resource type="ArrayMesh" uid="uid://bn4dh3m25iuup" path="res://art/models/Lander/MainEngine.res" id="2_g2ibd"]
 [ext_resource type="Material" uid="uid://t4mgakvq3mr0" path="res://scenes/Ship/Parts/MainEngine/Exhaust.tres" id="3_mnjhp"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a3ulc"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3uvpc"]
 transparency = 2
 alpha_scissor_threshold = 0.0
 alpha_antialiasing_mode = 0
@@ -15,7 +15,7 @@ vertex_color_is_srgb = true
 billboard_mode = 1
 
 [sub_resource type="QuadMesh" id="QuadMesh_71x68"]
-material = SubResource("StandardMaterial3D_a3ulc")
+material = SubResource("StandardMaterial3D_3uvpc")
 size = Vector2(0.25, 0.25)
 
 [node name="MainEngine" type="Node3D"]
@@ -27,7 +27,6 @@ mesh = ExtResource("2_g2ibd")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.184908, 0)
-emitting = false
 amount = 250
 lifetime = 0.5
 randomness = 0.2
