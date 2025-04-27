@@ -1,11 +1,17 @@
 extends ShipComponent
 
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
+func _init() -> void:
+	memory_size = 2
 
+func run_logic(_delta: float) -> void:
+	var buffer = addressBuffer[0]
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+	var clamped_buffer = clamp(buffer, -127, 127)
+	var mapped_angle = float(clamped_buffer) / 127.0 * 90.0
+	
+	# Apply rotation to the solar panel
+	rotation.z = deg_to_rad(mapped_angle)
+
+	# Set the generated power in the second memory address
+	addressBuffer[1] = 255 # TODO: actually calculate power based on angle and sun intensity

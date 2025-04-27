@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://d1he7h6c2ifoi"]
+[gd_scene load_steps=15 format=3 uid="uid://d1he7h6c2ifoi"]
 
 [ext_resource type="Script" path="res://scenes/Ship/Ship.gd" id="1_mp2ty"]
 [ext_resource type="ArrayMesh" uid="uid://c7vw7twlq30xh" path="res://art/models/Lander/BodyCube.res" id="2_6y3jr"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://dnvyusecte1jf" path="res://scenes/Ship/Parts/Camera/Camera.tscn" id="6_uvhyn"]
 [ext_resource type="PackedScene" uid="uid://c6lq5fnm7cfb6" path="res://scenes/Ship/Parts/ThrusterQuad/ThrusterQuad.tscn" id="7_ksf0g"]
 [ext_resource type="PackedScene" uid="uid://cfbmnc5vau2qe" path="res://scenes/Ship/Parts/SolarPanel/SolarPanel.tscn" id="8_kp43v"]
+[ext_resource type="PackedScene" uid="uid://p38nfdvptu01" path="res://scenes/Ship/Parts/Scanner/Scanner.tscn" id="9_mjkng"]
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_km7nn"]
 points = PackedVector3Array(-1, -0.122128, -0.765857, -0.870399, -0.254595, -0.74354, -1, -0.122128, 0.765662, -1, -0.121144, -0.767228, -0.870399, -0.254595, 0.743344, -0.74354, -0.254595, -0.870399, -1, -0.121144, 0.767032, -0.767228, -0.121144, -1, -1, 1.62257, -0.767228, -0.74354, -0.254595, 0.870204, -0.767228, -0.121144, 1, -0.765857, -0.122128, -1, 0.743344, -0.254595, -0.870399, -1, 1.62257, 0.767032, -0.767228, 1.62257, -1, -1, 1.62355, -0.765857, -0.870399, 1.75622, -0.74354, 0.743344, -0.254595, 0.870204, -0.765857, -0.122128, 1, -0.767228, 1.62257, 1, 0.765662, -0.122128, -1, 0.767032, -0.121144, -1, 1, -0.121144, -0.767228, 0.870204, -0.254595, -0.74354, -0.870399, 1.75622, 0.743344, -1, 1.62355, 0.765662, -0.74354, 1.75622, -0.870399, -0.765857, 1.62355, -1, 0.870204, -0.254595, 0.743344, 0.767032, -0.121144, 1, 0.765662, -0.122128, 1, -0.765857, 1.62355, 1, -0.74354, 1.75622, 0.870204, 0.767032, 1.62257, -1, 1, -0.122128, -0.765857, 1, 1.62257, -0.767228, 0.743344, 1.75622, -0.870399, 0.765662, 1.62355, -1, 1, -0.122128, 0.765662, 1, -0.121144, 0.767032, 0.767032, 1.62257, 1, 0.765662, 1.62355, 1, 0.743344, 1.75622, 0.870204, 0.870204, 1.75622, -0.74354, 1, 1.62355, -0.765857, 1, 1.62257, 0.767032, 0.870204, 1.75622, 0.743344, 1, 1.62355, 0.765662)
@@ -69,27 +70,40 @@ shape = SubResource("ConvexPolygonShape3D_drxif")
 
 [node name="MainEngine" parent="." instance=ExtResource("4_te2uv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.255, 0)
+memory_address = 522
 
 [node name="Camera" parent="." instance=ExtResource("6_uvhyn")]
 transform = Transform3D(6.12323e-17, 0, 1, 0, 1, 0, -1, 0, 6.12323e-17, -0.00162362, 0.320171, -1)
+memory_address = 532
 
 [node name="Antenna" parent="." instance=ExtResource("4_w40mm")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000406511, 1.75622, 0.000648727)
+memory_address = 533
 
 [node name="ThrusterQuad" parent="." instance=ExtResource("7_ksf0g")]
 transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 0.890547, 0.799914, -0.876744)
+memory_address = 523
 
 [node name="ThrusterQuad2" parent="." instance=ExtResource("7_ksf0g")]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0.891, 0.8, 0.877)
+memory_address = 524
 
 [node name="ThrusterQuad3" parent="." instance=ExtResource("7_ksf0g")]
 transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -0.891, 0.8, 0.877)
+memory_address = 525
 
 [node name="ThrusterQuad4" parent="." instance=ExtResource("7_ksf0g")]
 transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -0.891, 0.8, -0.877)
+memory_address = 526
 
 [node name="SolarPanel" parent="." instance=ExtResource("8_kp43v")]
 transform = Transform3D(6.12323e-17, 0, 1, 0, 1, 0, -1, 0, 6.12323e-17, -1, 1.26399, -0.00169204)
+memory_address = 527
 
 [node name="SolarPanel2" parent="." instance=ExtResource("8_kp43v")]
 transform = Transform3D(6.12323e-17, 0, -1, 0, 1, 0, 1, 0, 6.12323e-17, 1, 1.264, -0.002)
+memory_address = 529
+
+[node name="Scanner" parent="." instance=ExtResource("9_mjkng")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00218987, 0.498653, 1)
+memory_address = 531

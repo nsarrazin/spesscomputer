@@ -23,13 +23,18 @@ curve = SubResource("Curve_lod67")
 
 [resource]
 resource_local_to_scene = true
+emission_shape_scale = Vector3(0.1, 0.1, 0.1)
 direction = Vector3(0, -1, 0)
 spread = 25.541
 initial_velocity_min = 6.0
 initial_velocity_max = 20.0
+orbit_velocity_min = 2.0
+orbit_velocity_max = 2.0
+radial_velocity_min = -2.23517e-05
+radial_velocity_max = -2.23517e-05
 gravity = Vector3(0, 0, 0)
-linear_accel_min = 60.0
-linear_accel_max = 60.0
+linear_accel_min = -5.0
+linear_accel_max = 5.0
 attractor_interaction_enabled = false
 scale_curve = SubResource("CurveTexture_7kr77")
 color_ramp = SubResource("GradientTexture1D_qfqcq")

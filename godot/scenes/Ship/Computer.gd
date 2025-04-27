@@ -47,7 +47,6 @@ func _process(delta: float) -> void:
 	if !pause:
 		emulator.wait_until_done()
 		
-	print(emulator.get_cpu_state())
 	for component in shipComponents:
 		component.run_logic(delta)
 

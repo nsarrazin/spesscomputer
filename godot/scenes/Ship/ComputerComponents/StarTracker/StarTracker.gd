@@ -32,7 +32,7 @@ func run_logic(_delta: float) -> void:
 	rng.randomize()
 	
 	var base_x = fmod(rigid_body.rotation.x + rng.randfn(0, deviation) + PI, 2 * PI) - PI
-	var base_y = fmod(rigid_body.rotation.y + rng.randfn(0, deviation) + PI, 2 * PI) - PI 
+	var base_y = fmod(rigid_body.rotation.y + rng.randfn(0, deviation) + PI, 2 * PI) - PI
 	var base_z = fmod(rigid_body.rotation.z + rng.randfn(0, deviation) + PI, 2 * PI) - PI
 
 	addressBuffer[0] = round(clamp(remap(base_x, -PI, PI, 0, 255), 0, 255))

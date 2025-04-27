@@ -27,9 +27,11 @@ mesh = ExtResource("2_g2ibd")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.184908, 0)
+emitting = false
 amount = 250
 lifetime = 0.5
 randomness = 0.2
 visibility_aabb = AABB(-4, -4, -4, 8, 4, 8)
+trail_lifetime = 3.95
 process_material = ExtResource("3_mnjhp")
 draw_pass_1 = SubResource("QuadMesh_71x68")
