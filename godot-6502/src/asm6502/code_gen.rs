@@ -263,9 +263,10 @@ impl CodeGenerator {
         name: &str,
         branch_type: BranchType,
     ) -> Result<(), CodeGeneratorError> {
+        let absolute_address = self.start_point as usize + target.len();
         match branch_type {
             BranchType::Generic => {
-                self.branches.insert(name.to_owned(), target.len());
+                self.branches.insert(name.to_owned(), absolute_address);
                 self.local_branches.clear();
             }
             BranchType::Local => {
@@ -309,7 +310,7 @@ impl CodeGenerator {
         for (branch_name, position, _) in self.unresolved_absolute_jumps.iter() {
             match self.branches.get(branch_name) {
                 Some(branch_position) => {
-                    let jump_position = self.start_point + *branch_position as u16;
+                    let jump_position = *branch_position as u16;
 
                     target[*position] = jump_position as u8;
                     target[*position + 1] = (jump_position >> 8) as u8;
