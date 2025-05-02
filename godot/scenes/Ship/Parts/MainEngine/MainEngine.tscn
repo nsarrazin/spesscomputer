@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://dbxok8t5f1pwi"]
 
-[ext_resource type="Script" path="res://scenes/Ship/Parts/MainEngine/main_engine.gd" id="1_ngowk"]
+[ext_resource type="Script" uid="uid://cso1tm65rg43e" path="res://scenes/Ship/Parts/MainEngine/main_engine.gd" id="1_ngowk"]
 [ext_resource type="ArrayMesh" uid="uid://bn4dh3m25iuup" path="res://art/models/Lander/MainEngine.res" id="2_g2ibd"]
 [ext_resource type="Material" uid="uid://t4mgakvq3mr0" path="res://scenes/Ship/Parts/MainEngine/Exhaust.tres" id="3_mnjhp"]
 

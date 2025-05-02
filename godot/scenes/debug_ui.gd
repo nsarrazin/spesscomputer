@@ -13,7 +13,6 @@ func _ready():
 	assert(ship.computer)
 	computer = ship.computer
 	
-	
 func _process(_delta):
 	var isFirstLoad = Engine.get_process_frames() == 0
 	var state = computer.emulator.get_cpu_state()

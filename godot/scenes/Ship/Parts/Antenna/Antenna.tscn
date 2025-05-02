@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://ben4n8f4rggne"]
 
-[ext_resource type="Script" path="res://scenes/Ship/Parts/Antenna/antenna.gd" id="1_eep24"]
+[ext_resource type="Script" uid="uid://qn5mfuyhvnbv" path="res://scenes/Ship/Parts/Antenna/antenna.gd" id="1_eep24"]
 [ext_resource type="ArrayMesh" uid="uid://bdfsayyljv5u5" path="res://art/models/Lander/Antenna.res" id="2_7m7pv"]
 
 [node name="Antenna" type="Node3D"]

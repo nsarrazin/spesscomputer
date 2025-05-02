@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://c6lq5fnm7cfb6"]
 
-[ext_resource type="Script" path="res://scenes/Ship/Parts/ThrusterQuad/thruster_quad.gd" id="1_j0oyc"]
+[ext_resource type="Script" uid="uid://cvnuneqfjyelx" path="res://scenes/Ship/Parts/ThrusterQuad/thruster_quad.gd" id="1_j0oyc"]
 [ext_resource type="ArrayMesh" uid="uid://c4bng6phrkvd6" path="res://art/models/Lander/QuadRCS.res" id="1_lcv87"]
 [ext_resource type="Material" uid="uid://c6w0rqlrtrmp8" path="res://scenes/Ship/Parts/MainEngine/RCS.tres" id="3_2qopb"]
 

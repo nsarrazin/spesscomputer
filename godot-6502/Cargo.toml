@@ -26,11 +26,10 @@ features = [
 ]
 
 [dependencies.godot]
-version = "0.2.1"
+version = "0.2.4"
 features = [
     "api-custom",
     "double-precision",
     "experimental-wasm",
     "lazy-function-tables",
-    "experimental-wasm-nothreads"
 ]

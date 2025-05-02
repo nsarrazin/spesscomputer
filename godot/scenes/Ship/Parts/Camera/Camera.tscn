@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://dnvyusecte1jf"]
 
-[ext_resource type="Script" path="res://scenes/Ship/Parts/Camera/camera.gd" id="1_iwhl7"]
+[ext_resource type="Script" uid="uid://bu1pw6b0vopyg" path="res://scenes/Ship/Parts/Camera/camera.gd" id="1_iwhl7"]
 [ext_resource type="ArrayMesh" uid="uid://br5x2ft2dyuv3" path="res://art/models/Lander/Camera.res" id="1_tkjn8"]
 
 [node name="Camera" type="Node3D"]
