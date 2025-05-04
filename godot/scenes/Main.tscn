@@ -25,7 +25,7 @@ glow_enabled = true
 
 [node name="Test" type="Node3D" node_paths=PackedStringArray("planet") groups=["affected_by_gravity"]]
 script = ExtResource("1_24mpf")
-capsule_scene = ExtResource("1_5j0jt")
+ship_scene = ExtResource("1_5j0jt")
 planet = NodePath("Planet")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
@@ -35,31 +35,19 @@ shadow_enabled = true
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_qborp")
 
-[node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("target_node")]
+[node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 802.822, 154.346, -1034.37)
 current = true
 fov = 93.3
 near = 1.0
-far = 300000.0
+far = 3e+06
 script = ExtResource("2_oytva")
-target_node = NodePath("../Ship")
 orbit_radius = 50.0
 zoom_sensitivity = 1.0
 max_zoom = 100.0
 
-[node name="Ship" parent="." node_paths=PackedStringArray("planet_node") instance=ExtResource("1_5j0jt")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3500, 3500, 3500)
-mass = 500.0
-can_sleep = false
-linear_velocity = Vector3(0, 0, 0)
-angular_velocity = Vector3(0, 0, 0)
-planet_node = NodePath("../Planet")
-
 [node name="Planet" parent="." instance=ExtResource("4_hrnxs")]
 transform = Transform3D(0.428786, 0, 0.903406, 0, 1, 0, -0.903406, 0, 0.428786, 0, 0, 0)
-radius = 3000.0
-rotation_speed = 0.1
-gravitational_pull = 1e+08
 
 [node name="DebugUI" type="Node" parent="." node_paths=PackedStringArray("camera")]
 script = ExtResource("6_1srax")

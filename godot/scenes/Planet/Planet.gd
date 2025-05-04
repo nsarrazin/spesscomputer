@@ -4,12 +4,12 @@ extends Node3D
 @onready var collision_shape_instance = $CollisionShape3D
 @onready var ocean_mesh_instance = $OceanMeshInstance3D
 
-@export var radius: float = 250.0
-@export var rotation_speed: float = 0.05
-@export var gravitational_pull: float = 1e9
+@export var radius: float = 200000.0
+@export var rotation_speed: float = 0.005
+@export var gravitational_pull: float = 3e9
 
 var noise = FastNoiseLite.new()
-var noise2 = FastNoiseLite.new() 
+var noise2 = FastNoiseLite.new()
 var noise3 = FastNoiseLite.new()
 var noise4 = FastNoiseLite.new()
 var surface_tool = SurfaceTool.new()
@@ -20,16 +20,16 @@ var ocean_mesh = ArrayMesh.new()
 func _ready() -> void:
 	# Configure noise layers
 	noise.seed = randi()
-	noise.frequency = 0.0001*radius
+	noise.frequency = 0.0001 * radius
 	
 	noise2.seed = randi()
-	noise2.frequency = 0.0005*radius
+	noise2.frequency = 0.0005 * radius
 	
 	noise3.seed = randi()
-	noise3.frequency = 0.001*radius
+	noise3.frequency = 0.001 * radius
 
 	noise4.seed = randi()
-	noise4.frequency = 0.01*radius
+	noise4.frequency = 0.01 * radius
 	
 	# Generate planet mesh
 	generate_planet_mesh()
@@ -45,9 +45,9 @@ func generate_ocean_mesh() -> void:
 	
 	# Generate smooth sphere for ocean
 	var segments = 32
-	for lat in range(segments + 1):  # Add one more to close the sphere
+	for lat in range(segments + 1): # Add one more to close the sphere
 		var theta = lat * PI / segments
-		for lon in range(segments * 2 + 1):  # Add one more to wrap around
+		for lon in range(segments * 2 + 1): # Add one more to wrap around
 			var phi = lon * PI * 2 / (segments * 2)
 			
 			var x = sin(theta) * cos(phi)
@@ -97,9 +97,9 @@ func generate_planet_mesh() -> void:
 	var uvs = []
 	
 	# Generate vertices first
-	for lat in range(segments + 1):  # Add one more to close the sphere
+	for lat in range(segments + 1): # Add one more to close the sphere
 		var theta = lat * PI / segments
-		for lon in range(segments * 2 + 1):  # Add one more to wrap around
+		for lon in range(segments * 2 + 1): # Add one more to wrap around
 			var phi = lon * PI * 2 / (segments * 2)
 			
 			var x = sin(theta) * cos(phi)
@@ -115,7 +115,7 @@ func generate_planet_mesh() -> void:
 			noise_val += noise3.get_noise_3d(point.x * 4, point.y * 4, point.z * 4) * (noise_scale * 0.01)
 
 			# Add mountain ranges using clipped noise
-			var mountain_noise = noise4.get_noise_3d(point.x/100, point.y/100, point.z/100)
+			var mountain_noise = noise4.get_noise_3d(point.x / 100, point.y / 100, point.z / 100)
 			# Clip low values and offset to create distinct ranges
 			if mountain_noise <= 0.1:
 				mountain_noise = 0

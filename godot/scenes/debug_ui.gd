@@ -8,12 +8,14 @@ var computer: Computer = null
 var follow_pc: bool = true
 var active_page: int = 0
 
-func _ready():
+func _process(_delta):
+	if !camera || !camera.target_node:
+		return
 	var ship = camera.target_node
-	assert(ship.computer)
+	if !ship.computer:
+		return
 	computer = ship.computer
 	
-func _process(_delta):
 	var isFirstLoad = Engine.get_process_frames() == 0
 	var state = computer.emulator.get_cpu_state()
 	

@@ -14,7 +14,7 @@ We use godot with custom [large world coordinates](https://docs.godotengine.org/
 ```
 git clone https://github.com/godotengine/godot 
 cd godot
-git checkout 4.3-stable
+git checkout 4.4.1-stable
 scons platform=linuxbsd production=yes precision=double
 ```
 
@@ -22,6 +22,13 @@ Move the godot binary wherever you want and then add it to the GODOT4_BIN enviro
 
 ```bash
 export GODOT4_BIN="/path/to/godot/bin"
+```
+
+We also have to build the export templates. In the same folder:
+
+```
+scons platform=web dlink_enabled=yes target=template_release precision=double
+scons platform=web dlink_enabled=yes target=template_debug precision=double
 ```
 
 This is required for compatibility with the custom build of godot.

@@ -131,13 +131,55 @@ struct Emulator6502 {
 #[godot_api]
 impl Emulator6502 {
     #[func]
-    pub fn create_cpu_from_source(path: String, frequency: i32) -> Gd<Self> {
-        let program = compile_assembly(path);
-        let key = ORCHESTRATOR.lock().unwrap().create_cpu(0x0600, program);
+    pub fn create_cpu(frequency: i32) -> Gd<Self> {
+        let key = ORCHESTRATOR.lock().unwrap().create_cpu(0x0600, Vec::new());
         return Gd::from_object(Emulator6502 {
             key: key.to_string(),
             frequency,
         });
+    }
+
+    #[func]
+    pub fn load_program(&self, program: Array<u8>, start_address: u16) {
+        let key = Uuid::parse_str(&self.key).unwrap();
+        let guard = ORCHESTRATOR.lock().unwrap();
+        let cpu = guard.get_cpu(key).clone().get_cpu();
+
+        // Convert Godot Array<u8> to Vec<u8>
+        let mut vec_program = Vec::with_capacity(program.len() as usize);
+        for i in 0..program.len() {
+            if let Some(byte) = program.get(i) {
+                vec_program.push(byte);
+            }
+        }
+
+        cpu.lock()
+            .unwrap()
+            .memory
+            .set_bytes(start_address, &vec_program);
+        cpu.lock().unwrap().registers.program_counter = start_address;
+    }
+
+    #[func]
+    pub fn load_program_from_string(&self, assembly_code: String, start_address: u16) {
+        let program = match asm6502::assemble_string(&assembly_code) {
+            Ok(bytes) if !bytes.is_empty() => {
+                godot_print!("Successfully compiled assembly from string");
+                bytes
+            }
+            _ => {
+                godot_error!("Failed to compile assembly from string");
+                Vec::new()
+            }
+        };
+
+        // Convert Vec<u8> to Godot Array<u8>
+        let mut godot_array = Array::new();
+        for byte in program {
+            godot_array.push(byte);
+        }
+
+        self.load_program(godot_array, start_address);
     }
 
     #[func]
@@ -234,85 +276,14 @@ impl Emulator6502 {
     }
 
     #[func]
+    pub fn set_program_counter(&self, address: u16) {
+        let cpu = self.cpu().get_cpu();
+        let mut cpu_guard = cpu.lock().unwrap();
+        cpu_guard.registers.program_counter = address;
+    }
+
+    #[func]
     pub fn wait_until_done(&self) {
         self.cpu().wait_until_done();
     }
-}
-
-// this causes a panic for some reason
-// impl Drop for Emulator6502 {
-//     fn drop(&mut self) {
-//         ORCHESTRATOR.lock().unwrap().remove_cpu(Uuid::parse_str(&self.key).unwrap());
-//     }
-//
-
-fn compile_assembly(path: String) -> Vec<u8> {
-    use std::fs;
-    use std::path::PathBuf;
-
-    godot_print!("Compiling assembly from {}", path);
-
-    let pathbuf = PathBuf::from(path.clone());
-    let assembly = std::fs::read_to_string(&path).expect("Failed to read assembly file");
-
-    // Create temp directory path
-    let tmp_dir = std::env::temp_dir().join("godot-6502-compile");
-    fs::create_dir_all(&tmp_dir).expect("Failed to create temp directory");
-
-    // Copy assembly file to temp directory
-    let tmp_asm = tmp_dir.join("temp.a65");
-    fs::write(&tmp_asm, assembly).expect("Failed to write temp assembly file");
-
-    // Copy linker config to temp directory
-    let linker_cfg = pathbuf.parent().unwrap().join("linker.cfg");
-    if !linker_cfg.exists() {
-        panic!("Linker config file not found at {:?}", linker_cfg);
-    }
-    fs::copy(&linker_cfg, tmp_dir.join("linker.cfg")).expect("Failed to copy linker config");
-
-    // Compile assembly
-    let ca65_output = std::process::Command::new("ca65")
-        .current_dir(&tmp_dir)
-        .arg("temp.a65")
-        .output()
-        .expect("Failed to execute ca65 - is it installed?");
-
-    if !ca65_output.status.success() {
-        // Clean up temp directory before panicking
-        fs::remove_dir_all(tmp_dir).expect("Failed to clean up temp directory");
-        panic!(
-            "ca65 failed: {}",
-            String::from_utf8_lossy(&ca65_output.stderr)
-        );
-    }
-
-    // Link object file
-    let ld65_output = std::process::Command::new("ld65")
-        .current_dir(&tmp_dir)
-        .arg("-C")
-        .arg("linker.cfg")
-        .arg("-o")
-        .arg("temp.bin")
-        .arg("temp.o")
-        .output()
-        .expect("Failed to execute ld65 - is it installed?");
-
-    if !ld65_output.status.success() {
-        // Clean up temp directory before panicking
-        fs::remove_dir_all(tmp_dir).expect("Failed to clean up temp directory");
-        panic!(
-            "ld65 failed: {}",
-            String::from_utf8_lossy(&ld65_output.stderr)
-        );
-    }
-
-    godot_print!("Compiled assembly to {:?}", tmp_dir.join("temp.bin"));
-
-    // Read binary file into Vec<u8>
-    let binary = fs::read(tmp_dir.join("temp.bin")).expect("Failed to read binary file");
-
-    // Clean up temp directory
-    fs::remove_dir_all(tmp_dir).expect("Failed to clean up temp directory");
-
-    binary
 }
