@@ -28,10 +28,10 @@ points = PackedVector3Array(0.846516, -0.202398, -0.771114, 1.15083, -1.64391, -
 
 [node name="Ship" type="RigidBody3D" groups=["affected_by_gravity", "ships"]]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0)
-mass = 500.0
+mass = 50.0
 gravity_scale = 0.0
 linear_velocity = Vector3(50, 50, 50)
-angular_velocity = Vector3(0, 0, 8.72665)
+angular_velocity = Vector3(0, 0, 0.174533)
 script = ExtResource("1_mp2ty")
 source_code = ExtResource("2_rj6ok")
 

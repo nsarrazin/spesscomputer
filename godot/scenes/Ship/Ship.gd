@@ -36,7 +36,7 @@ func set_initial_speed() -> void:
 	var r = radius_vector.length()
 	
 	# Semi-major axis a = r/(1-e) at periapsis
-	var e = 0.7 # eccentricity
+	var e = 0 # eccentricity
 	var a = r / (1 - e)
 	
 	# Calculate velocity magnitude using vis-viva equation

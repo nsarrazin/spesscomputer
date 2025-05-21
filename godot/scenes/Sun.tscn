@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3 uid="uid://bhhjyy2x236xb"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_uo8ta"]
+fractal_octaves = 6
+fractal_gain = -1.345
+domain_warp_enabled = true
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_5fsc2"]
+noise = SubResource("FastNoiseLite_uo8ta")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uo8ta"]
+albedo_color = Color(0.961358, 0.912689, 0.649147, 1)
+emission_enabled = true
+emission = Color(1, 0.980755, 0.325187, 1)
+emission_energy_multiplier = 44.97
+emission_texture = SubResource("NoiseTexture2D_5fsc2")
+
+[sub_resource type="SphereMesh" id="SphereMesh_5fsc2"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_s0bcd"]
+
+[node name="Sun" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1000, 0, 0, 0, 1000, 0, 0, 0, 1000, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_uo8ta")
+mesh = SubResource("SphereMesh_5fsc2")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="."]
+transform = Transform3D(1000, 0, 0, 0, 1000, 0, 0, 0, 1000, 0, 0, 0)
+shape = SubResource("SphereShape3D_s0bcd")

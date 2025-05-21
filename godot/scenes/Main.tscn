@@ -1,11 +1,13 @@
-[gd_scene load_steps=10 format=3 uid="uid://dmow5ogajbtl5"]
+[gd_scene load_steps=12 format=3 uid="uid://dmow5ogajbtl5"]
 
 [ext_resource type="PackedScene" uid="uid://d1he7h6c2ifoi" path="res://scenes/Ship/Ship.tscn" id="1_5j0jt"]
 [ext_resource type="Script" uid="uid://d1hcgilyrpu7d" path="res://scenes/main.gd" id="1_24mpf"]
 [ext_resource type="Texture2D" uid="uid://dtlptku1k7pm1" path="res://art/images/space_background.webp" id="1_n0ryh"]
 [ext_resource type="Script" uid="uid://b5gnak3bsmfe7" path="res://scenes/camera_3d.gd" id="2_oytva"]
+[ext_resource type="Script" uid="uid://cxknrpqwmhdwt" path="res://scenes/sun_light.gd" id="3_jlsqs"]
 [ext_resource type="PackedScene" uid="uid://dt0sit4eidov4" path="res://scenes/Planet/Planet.tscn" id="4_hrnxs"]
 [ext_resource type="Script" uid="uid://v705eve33wpp" path="res://scenes/debug_ui.gd" id="6_1srax"]
+[ext_resource type="PackedScene" uid="uid://bhhjyy2x236xb" path="res://scenes/Sun.tscn" id="7_nxtc6"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_qv8dj"]
 panorama = ExtResource("1_n0ryh")
@@ -23,14 +25,10 @@ ssao_enabled = true
 sdfgi_read_sky_light = false
 glow_enabled = true
 
-[node name="Test" type="Node3D" node_paths=PackedStringArray("planet") groups=["affected_by_gravity"]]
+[node name="Main" type="Node3D" node_paths=PackedStringArray("planet") groups=["affected_by_gravity"]]
 script = ExtResource("1_24mpf")
 ship_scene = ExtResource("1_5j0jt")
 planet = NodePath("Planet")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.999816, -0.0130926, 0.0140401, 0, 0.731354, 0.681998, -0.0191974, 0.681873, -0.731219, 0, 0, 0)
-shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_qborp")
@@ -40,7 +38,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 802.822, 154.346, -1034.37)
 current = true
 fov = 93.3
 near = 1.0
-far = 3e+06
+far = 3e+07
 script = ExtResource("2_oytva")
 orbit_radius = 50.0
 zoom_sensitivity = 1.0
@@ -53,3 +51,13 @@ gravitational_pull = 3e+13
 [node name="DebugUI" type="Node" parent="." node_paths=PackedStringArray("camera")]
 script = ExtResource("6_1srax")
 camera = NodePath("../Camera3D")
+
+[node name="Sun" parent="." instance=ExtResource("7_nxtc6")]
+transform = Transform3D(1000, 0, 0, 0, 1000, 0, 0, 0, 1000, 2e+06, 2e+06, 2e+06)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." node_paths=PackedStringArray("sun_node")]
+light_energy = 2.445
+shadow_enabled = true
+sky_mode = 1
+script = ExtResource("3_jlsqs")
+sun_node = NodePath("../Sun")

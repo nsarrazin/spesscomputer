@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_foe4q")
-value = "THRUSTER_ZERO = $020A
+value = "THRUSTER_ZERO = $020D
 
 .org $0600
 

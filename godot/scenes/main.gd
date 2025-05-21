@@ -33,6 +33,7 @@ func spawn_ship(source_code: String = "") -> void:
 	)
 	
 	ship.planet_node = planet
+	ship.set_initial_speed()
 
 	if ship.computer && source_code:
 		ship.computer.emulator.load_program_from_string(source_code, 0x600)
