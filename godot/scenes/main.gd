@@ -8,43 +8,13 @@ var ship_idx: int = 0
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	spawn_ship("""
-THRUSTER_ZERO = $020A
-
-.org $0600
-
-main_loop:
-	LDA #24                  ; Load thruster value 8
-	STA THRUSTER_ZERO       ; Set thruster to 8
-	JSR delay               ; Call delay subroutine
+	# Check if there are any ships in the scene
+	var existing_ships = get_tree().get_nodes_in_group("ships")
 	
-	LDA #0                  ; Load thruster value 0
-	STA THRUSTER_ZERO       ; Set thruster to 0
-	JSR delay               ; Call delay subroutine
+	# If no ships exist, spawn one
+	if existing_ships.is_empty():
+		spawn_ship()
 
-	LDA #12                  ; Load thruster value 4
-	STA THRUSTER_ZERO       ; Set thruster to 4
-	JSR delay               ; Call delay subroutine
-
-	LDA #0                  ; Load thruster value 8
-	STA THRUSTER_ZERO       ; Set thruster to 8
-	JSR delay               ; Call delay subroutine
-
-	JMP main_loop           ; Repeat forever
-
-; Delay subroutine - nested loops for shorter delay
-delay:
-	LDX #10                 ; Initialize outer loop counter (10 instead of 255)
-outer_loop:
-	LDY #$FF                ; Initialize inner loop counter
-inner_loop:
-	NOP                     ; Waste some cycles
-	DEY                     ; Decrement inner counter
-	BNE inner_loop          ; Loop until inner counter = 0
-	DEX                     ; Decrement outer counter
-	BNE outer_loop          ; Loop until outer counter = 0
-	RTS                     ; Return from subroutine
-	""")
 func spawn_ship(source_code: String = "") -> void:
 	if not ship_scene or not planet:
 		return

@@ -27,6 +27,7 @@ enabled=PackedStringArray("res://addons/imgui-godot/plugin.cfg")
 [global_group]
 
 affected_by_gravity="Rigid bodies affected by gravity"
+ships=""
 
 [physics]
 

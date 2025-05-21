@@ -24,14 +24,15 @@ Move the godot binary wherever you want and then add it to the GODOT4_BIN enviro
 export GODOT4_BIN="/path/to/godot/bin"
 ```
 
-We also have to build the export templates. In the same folder:
+We also have to [build the export templates](https://docs.godotengine.org/en/latest/contributing/development/compiling/index.html). In the same folder:
 
 ```
 scons platform=web dlink_enabled=yes target=template_release precision=double
 scons platform=web dlink_enabled=yes target=template_debug precision=double
+
 ```
 
-This is required for compatibility with the custom build of godot.
+This is required for compatibility with the custom build of godot. 
 
 ### Compile library
 

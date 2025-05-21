@@ -48,6 +48,7 @@ max_zoom = 100.0
 
 [node name="Planet" parent="." instance=ExtResource("4_hrnxs")]
 transform = Transform3D(0.428786, 0, 0.903406, 0, 1, 0, -0.903406, 0, 0.428786, 0, 0, 0)
+gravitational_pull = 3e+13
 
 [node name="DebugUI" type="Node" parent="." node_paths=PackedStringArray("camera")]
 script = ExtResource("6_1srax")

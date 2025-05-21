@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3 uid="uid://b44ygtrsxufro"]
+
+[ext_resource type="PackedScene" uid="uid://d1he7h6c2ifoi" path="res://scenes/Ship/Ship.tscn" id="2_q3pxt"]
+[ext_resource type="Script" uid="uid://b5gnak3bsmfe7" path="res://scenes/camera_3d.gd" id="2_x67su"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kmqq3"]
+size = Vector3(200, 0.1, 200)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kmqq3"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("BoxShape3D_kmqq3")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(200, 0, 0, 0, 0.1, 0, 0, 0, 200, 0, 0, 0)
+mesh = SubResource("BoxMesh_kmqq3")
+
+[node name="Ship" parent="." instance=ExtResource("2_q3pxt")]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -5.84128, 41.5873, 2.73719)
+mass = 30.0
+gravity_scale = 1.0
+linear_velocity = Vector3(0, 0, 0)
+angular_velocity = Vector3(0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("target_node")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 802.822, 154.346, -1034.37)
+current = true
+fov = 93.3
+near = 1.0
+far = 3e+06
+script = ExtResource("2_x67su")
+target_node = NodePath("../Ship")
+orbit_radius = 50.0
+zoom_sensitivity = 1.0
+max_zoom = 100.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.999816, -0.0130926, 0.0140401, 0, 0.731354, 0.681998, -0.0191974, 0.681873, -0.731219, -370.718, 130.506, 0)
+shadow_enabled = true

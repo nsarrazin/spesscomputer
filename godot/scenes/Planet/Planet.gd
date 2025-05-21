@@ -2,131 +2,81 @@ extends Node3D
 
 @onready var mesh_instance = $MeshInstance3D
 @onready var collision_shape_instance = $CollisionShape3D
-@onready var ocean_mesh_instance = $OceanMeshInstance3D
 
 @export var radius: float = 200000.0
 @export var rotation_speed: float = 0.005
 @export var gravitational_pull: float = 3e9
 
 var noise = FastNoiseLite.new()
-var noise2 = FastNoiseLite.new()
-var noise3 = FastNoiseLite.new()
-var noise4 = FastNoiseLite.new()
 var surface_tool = SurfaceTool.new()
-var ocean_surface_tool = SurfaceTool.new()
 var mesh = ArrayMesh.new()
-var ocean_mesh = ArrayMesh.new()
+var max_terrain_height = 0.0
+var vertices = []
+var initialized = false
 
 func _ready() -> void:
-	# Configure noise layers
+	# Configure noise 
 	noise.seed = randi()
-	noise.frequency = 0.0001 * radius
+	noise.frequency = 0.0005 * radius
+	noise.fractal_octaves = 3
+	noise.fractal_gain = 0.5
 	
-	noise2.seed = randi()
-	noise2.frequency = 0.0005 * radius
+	# Optimize global physics
+	Engine.physics_ticks_per_second = 30
+	Engine.max_physics_steps_per_frame = 4
 	
-	noise3.seed = randi()
-	noise3.frequency = 0.001 * radius
+	# Generate mesh with collision
+	generate_planet()
+	
+	initialized = true
 
-	noise4.seed = randi()
-	noise4.frequency = 0.01 * radius
-	
-	# Generate planet mesh
+func generate_planet() -> void:
+	print("Generating planet mesh...")
+
 	generate_planet_mesh()
-	generate_ocean_mesh()
 	
-	# Set up collision shape to match mesh
-	var collision_shape = ConcavePolygonShape3D.new()
-	collision_shape.set_faces(mesh.get_faces())
-	collision_shape_instance.shape = collision_shape
-
-func generate_ocean_mesh() -> void:
-	ocean_surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-	
-	# Generate smooth sphere for ocean
-	var segments = 32
-	for lat in range(segments + 1): # Add one more to close the sphere
-		var theta = lat * PI / segments
-		for lon in range(segments * 2 + 1): # Add one more to wrap around
-			var phi = lon * PI * 2 / (segments * 2)
-			
-			var x = sin(theta) * cos(phi)
-			var y = cos(theta)
-			var z = sin(theta) * sin(phi)
-			
-			var point = Vector3(x, y, z) * (radius + 5.0)
-			var uv = Vector2(float(lon) / (segments * 2), float(lat) / segments)
-			
-			ocean_surface_tool.set_uv(uv)
-			ocean_surface_tool.add_vertex(point)
-			
-			# Create triangles (except for last row and column)
-			if lat < segments and lon < segments * 2:
-				var i = lat * (segments * 2 + 1) + lon
-				
-				# First triangle
-				ocean_surface_tool.add_index(i)
-				ocean_surface_tool.add_index(i + (segments * 2 + 1))
-				ocean_surface_tool.add_index(i + 1)
-				
-				# Second triangle
-				ocean_surface_tool.add_index(i + 1)
-				ocean_surface_tool.add_index(i + (segments * 2 + 1))
-				ocean_surface_tool.add_index(i + (segments * 2 + 2))
-	
-	ocean_surface_tool.generate_normals()
-	ocean_surface_tool.index()
-	ocean_mesh = ocean_surface_tool.commit()
-	
-	# Create transparent ocean material
-	var ocean_material = StandardMaterial3D.new()
-	ocean_material.albedo_color = Color(0.2, 0.5, 0.8, 0.9)
-	ocean_material.roughness = 0.3
-	ocean_material.metallic = 0.3
-	ocean_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	
-	ocean_mesh_instance.mesh = ocean_mesh
-	ocean_mesh_instance.material_override = ocean_material
 
 func generate_planet_mesh() -> void:
 	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
-	# Generate sphere vertices with multiple noise layers
+	# Generate sphere vertices
 	var segments = 32
-	var vertices = []
+	vertices.clear()
 	var uvs = []
 	
+	# Reset height tracker
+	max_terrain_height = 0.0
+	
 	# Generate vertices first
-	for lat in range(segments + 1): # Add one more to close the sphere
+	for lat in range(segments + 1):
 		var theta = lat * PI / segments
-		for lon in range(segments * 2 + 1): # Add one more to wrap around
+		var sin_theta = sin(theta)
+		var cos_theta = cos(theta)
+		
+		for lon in range(segments * 2 + 1):
 			var phi = lon * PI * 2 / (segments * 2)
+			var sin_phi = sin(phi)
+			var cos_phi = cos(phi)
 			
-			var x = sin(theta) * cos(phi)
-			var y = cos(theta)
-			var z = sin(theta) * sin(phi)
+			var x = sin_theta * cos_phi
+			var y = cos_theta
+			var z = sin_theta * sin_phi
 			
 			var point = Vector3(x, y, z)
 			
-			# Combine multiple noise layers, scaled by radius
-			var noise_scale = radius * 0.2
-			var noise_val = noise.get_noise_3d(point.x, point.y, point.z) * noise_scale
-			noise_val += noise2.get_noise_3d(point.x * 2, point.y * 2, point.z * 2) * (noise_scale * 0.1)
-			noise_val += noise3.get_noise_3d(point.x * 4, point.y * 4, point.z * 4) * (noise_scale * 0.01)
-
-			# Add mountain ranges using clipped noise
-			var mountain_noise = noise4.get_noise_3d(point.x / 100, point.y / 100, point.z / 100)
-			# Clip low values and offset to create distinct ranges
-			if mountain_noise <= 0.1:
-				mountain_noise = 0
+			# Calculate height at this point
+			var height = calculate_terrain_height(point)
 			
-			point = point * (radius + noise_val + mountain_noise)
+			# Track maximum terrain height
+			if abs(height) > max_terrain_height:
+				max_terrain_height = abs(height)
 
+			point = point * (radius + height)
 			vertices.append(point)
 			
 			var uv = Vector2(float(lon) / (segments * 2), float(lat) / segments)
 			uvs.append(uv)
-	
+
 	# Create triangles
 	for lat in range(segments):
 		for lon in range(segments * 2):
@@ -156,32 +106,79 @@ func generate_planet_mesh() -> void:
 	surface_tool.index()
 	mesh = surface_tool.commit()
 	
-	# Create and apply material
-	var material = StandardMaterial3D.new()
-	material.albedo_color = Color(0.7, 0.5, 0.3)
-	material.roughness = 0.8
-	material.metallic = 0.1
+	# Create and apply lunar material
+	var material = create_lunar_material()
 	
 	mesh_instance.mesh = mesh
 	mesh_instance.material_override = material
 
+
+# Function to calculate terrain height at a point
+func calculate_terrain_height(point: Vector3) -> float:
+	var noise_scale = radius * 0.03
+	var noise_val = noise.get_noise_3d(point.x, point.y, point.z) * noise_scale
+	return noise_val
+
+# Get height at a specific point on planet
+func get_height_at_position(global_pos: Vector3) -> float:
+	var local_pos = global_transform.affine_inverse() * global_pos
+	var direction = local_pos.normalized()
+	
+	# Calculate the height using noise
+	var height = calculate_terrain_height(direction)
+	
+	return radius + height
+
+# Creates a realistic moon material
+func create_lunar_material() -> StandardMaterial3D:
+	var material = StandardMaterial3D.new()
+	
+	# Simple dark grey color
+	material.albedo_color = Color(0.2, 0.2, 0.21)
+	
+	# Create a basic noise texture for minimal variation
+	var albedo_noise = NoiseTexture2D.new()
+	albedo_noise.seamless = true
+	albedo_noise.width = 256
+	albedo_noise.height = 256
+	
+	var noise_for_albedo = FastNoiseLite.new()
+	noise_for_albedo.seed = randi()
+	noise_for_albedo.frequency = 0.005
+	noise_for_albedo.fractal_octaves = 1
+	albedo_noise.noise = noise_for_albedo
+	
+	material.albedo_texture = albedo_noise
+	
+	# Simple roughness settings
+	material.roughness = 0.95
+	material.metallic = 0.0
+	material.specular = 0.1
+	
+	# Disable other features for simplicity
+	material.normal_enabled = false
+	material.ao_enabled = false
+	material.heightmap_enabled = false
+	
+	return material
+
 func _physics_process(delta: float) -> void:
+	if not initialized:
+		return
+		
 	# Rotate planet
 	rotate_y(rotation_speed * delta)
 	
-	# Apply gravitational pull to nearby bodies
+	# Apply gravitational pull only to bodies that aren't too far
 	for body in get_tree().get_nodes_in_group("affected_by_gravity"):
 		if body is RigidBody3D:
-			# Check if body is ready and active
 			if not is_instance_valid(body) or body.freeze:
 				continue
 				
 			var direction = global_position - body.global_position
 			var distance = direction.length()
-			
-			# Calculate force with more controlled magnitude
+				
 			var force_magnitude = (gravitational_pull * body.mass) / (distance * distance)
 			var force = direction.normalized() * force_magnitude
 			
-			# Apply force directly to the body's physics state
 			body.apply_central_force(force)

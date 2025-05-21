@@ -7,6 +7,8 @@ const IMU = preload("res://scenes/Ship/ComputerComponents/IMU/IMU.gd")
 const StarTracker = preload("res://scenes/Ship/ComputerComponents/StarTracker/StarTracker.gd")
 
 @export var planet_node: Node3D = null
+@export var source_code: SourceCode = null
+
 var computer: Computer = null
 
 func _init() -> void:
@@ -16,11 +18,13 @@ func _init() -> void:
 
 	add_computer_component(IMU, 0x200)
 	add_computer_component(StarTracker, 0x206)
-
 	
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	set_initial_speed()
+	if source_code:
+		computer.emulator.load_program_from_string(source_code.value, 0x600)
 
 func set_initial_speed() -> void:
 	if not planet_node:
