@@ -12,7 +12,7 @@ noise = SubResource("FastNoiseLite_uo8ta")
 albedo_color = Color(0.961358, 0.912689, 0.649147, 1)
 emission_enabled = true
 emission = Color(1, 0.980755, 0.325187, 1)
-emission_energy_multiplier = 44.97
+emission_energy_multiplier = 2.87
 emission_texture = SubResource("NoiseTexture2D_5fsc2")
 
 [sub_resource type="SphereMesh" id="SphereMesh_5fsc2"]

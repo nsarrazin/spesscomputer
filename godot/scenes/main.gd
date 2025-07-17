@@ -21,18 +21,18 @@ func spawn_ship(source_code: String = "") -> void:
 	
 	var ship = ship_scene.instantiate()
 	add_child(ship)
-	
+	ship.planet_node = planet
+
 	# Position randomly around planet
 	var angle = randf() * TAU
-	var height = randf_range(100000, 120000) # Just above planet surface (100-120km)
-	var radius = randf_range(200000, 300000) # Slightly away from planet surface (200-300km)
+	var height = randf_range(planet.radius/2, planet.radius/2) # Just above planet surface (100-120km)
+	var radius = randf_range(planet.radius, planet.radius) # Slightly away from planet surface (200-300km)
 	ship.position = Vector3(
 		cos(angle) * radius,
 		height,
 		sin(angle) * radius
 	)
 	
-	ship.planet_node = planet
 	ship.set_initial_speed()
 
 	if ship.computer && source_code:

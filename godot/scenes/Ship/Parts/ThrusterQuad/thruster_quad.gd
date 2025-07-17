@@ -39,13 +39,13 @@ func run_logic(_delta: float) -> void:
 	if parent and parent is RigidBody3D:
 		var force = Vector3.ZERO
 		if x_pos_active:
-			force += global_transform.basis.x * force_magnitude
-		if x_neg_active:
 			force -= global_transform.basis.x * force_magnitude
+		if x_neg_active:
+			force += global_transform.basis.x * force_magnitude
 		if y_pos_active:
-			force += global_transform.basis.y * force_magnitude
-		if y_neg_active:
 			force -= global_transform.basis.y * force_magnitude
+		if y_neg_active:
+			force += global_transform.basis.y * force_magnitude
 
 		var position_force = global_position - parent.global_position
 

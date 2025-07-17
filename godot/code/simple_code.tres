@@ -9,7 +9,7 @@ value = "THRUSTER_ZERO = $020D
 .org $0600
 
 main_loop:
-	LDA #24                  ; Load thruster value 8
+	LDA #8                  ; Load thruster value 8
 	STA THRUSTER_ZERO       ; Set thruster to 8
 	JSR delay               ; Call delay subroutine
 	
@@ -17,7 +17,7 @@ main_loop:
 	STA THRUSTER_ZERO       ; Set thruster to 0
 	JSR delay               ; Call delay subroutine
 
-	LDA #12                  ; Load thruster value 4
+	LDA #4                  ; Load thruster value 4
 	STA THRUSTER_ZERO       ; Set thruster to 4
 	JSR delay               ; Call delay subroutine
 

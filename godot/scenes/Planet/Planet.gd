@@ -17,7 +17,7 @@ var initialized = false
 func _ready() -> void:
 	# Configure noise 
 	noise.seed = randi()
-	noise.frequency = 0.0005 * radius
+	noise.frequency = 0.05 * radius
 	noise.fractal_octaves = 3
 	noise.fractal_gain = 0.5
 	
