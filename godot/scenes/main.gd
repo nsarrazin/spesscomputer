@@ -3,16 +3,14 @@ extends Node3D
 @export var ship_scene: PackedScene
 @export var planet: Node3D
 
-var ships: Array[Node3D] = []
+var ships: Array[Node] = []
 var ship_idx: int = 0
 
 # Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	# Check if there are any ships in the scene
-	var existing_ships = get_tree().get_nodes_in_group("ships")
-	
+func _ready() -> void:	
+	ships = get_tree().get_nodes_in_group("ships")
 	# If no ships exist, spawn one
-	if existing_ships.is_empty():
+	if ships.is_empty():
 		spawn_ship()
 
 	WebHelper.expose_all(self)
@@ -74,9 +72,31 @@ func js_getCurrentRegisters():
 	
 	if !active_ship.computer or !active_ship.computer.emulator:
 		return -1
-	
-	print(active_ship.computer.emulator.get_cpu_state())
-	return JSON.stringify(active_ship.computer.emulator.get_cpu_state())
 
-func js_ping():
-	return 123
+	return active_ship.computer.emulator.get_cpu_state()
+
+func js_respawnShipWithCode(source=""):
+	ships = []
+	ship_idx = 0
+	spawn_ship(source)
+	
+func js_nextShip():
+	next_ship()
+	
+func js_prevShip():
+	previous_ship()
+	
+func js_getPage(page=-1):
+	var active_ship = ships[ship_idx]
+	
+	if !active_ship.computer or !active_ship.computer.emulator:
+		return null
+	
+	if page < 0:
+		var states = active_ship.computer.emulator.get_cpu_state()
+		var current_page = states['pc'] >> 8 
+		return active_ship.computer.emulator.read_page(current_page)
+
+
+	return active_ship.computer.emulator.read_page(page)
+	

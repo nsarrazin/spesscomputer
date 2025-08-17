@@ -7,6 +7,8 @@ var _thunks: Dictionary = {}
 
 # Small helper that adapts a normal GDScript function to the JS callback shape.
 # Small helper that adapts a normal GDScript function to the JS callback shape.
+
+# ---- Thunk: adapts a normal GDScript method to the JS callback shape ----
 class BridgeThunk:
 	extends RefCounted
 	var target: Object
@@ -16,16 +18,17 @@ class BridgeThunk:
 		target = t
 		method = m
 
+	# Called from JS as: __raw[name](call_id, ...args)
 	func bridge_cb(args: Array) -> void:
-		# Our JS wrapper doesn't pass resolve/reject anymore — only real args.
-		var argv = args
+		var call_id = args[0] if args.size() > 0 else 0
+		var argv    = args.slice(1, args.size()) if args.size() > 1 else []
 
 		if !is_instance_valid(target) or !target.has_method(method):
 			return
 
 		var result = target.callv(method, argv)
 
-		# Marshal: primitives go through; complex -> JSON string.
+		# Marshal: primitives pass; complex -> JSON string
 		var to_js: Variant = result
 		match typeof(result):
 			TYPE_NIL:
@@ -35,40 +38,66 @@ class BridgeThunk:
 			_:
 				to_js = JSON.stringify(result)
 
-		# Stash on window under <name>__result for the wrapper to read.
 		var js_name := method.substr(3) if method.begins_with("js_") else method
-		var win = JavaScriptBridge.get_interface("window")
-		win[js_name + "__result"] = to_js
 
-# Expose a GDScript method to JS as window[name](...)
+		# Stash under window.WebHelper.__results[js_name][call_id]
+		var ns = JavaScriptBridge.get_interface("WebHelper")
+		if ns == null:
+			# Shouldn't happen (namespace created in expose), but be defensive
+			JavaScriptBridge.eval("window.WebHelper ??= {}; window.WebHelper.__results ??= {};", true)
+			ns = JavaScriptBridge.get_interface("WebHelper")
+
+		if ns.__results == null:
+			ns.__results = JavaScriptBridge.create_object("Object")
+		var bucket = ns.__results[js_name]
+		if bucket == null:
+			bucket = JavaScriptBridge.create_object("Object")
+			ns.__results[js_name] = bucket
+		bucket[str(call_id)] = to_js
+
+
+# ---- Public API ----
+
+# Expose a GDScript method to JS as window.WebHelper[name](...)
 func expose(target: Object, method_name: String) -> void:
 	if not OS.has_feature("web"):
 		return
 
 	var js_name := method_name.substr(3) if method_name.begins_with("js_") else method_name
 
+	# Ensure namespace objects exist once
+	JavaScriptBridge.eval("""
+		window.WebHelper ??= {};
+		WebHelper.__raw ??= {};
+		WebHelper.__results ??= {};
+	""", true)
+
+	# Per-method thunk & raw callback
 	var thunk := BridgeThunk.new(target, method_name)
 	var cb = JavaScriptBridge.create_callback(Callable(thunk, "bridge_cb"))
 
 	_thunks[js_name] = thunk
 	_callbacks[js_name] = cb
 
-	var win = JavaScriptBridge.get_interface("window")
-	win[js_name + "__cb"] = cb
+	# Register raw callback under WebHelper.__raw[name]
+	var ns = JavaScriptBridge.get_interface("WebHelper")
+	ns.__raw[js_name] = cb
 
-	# Promise wrapper: invoke raw, then read <name>__result on the next microtask.
+	# Promise wrapper under WebHelper[name]
 	JavaScriptBridge.eval("""
 	(function(name){
-	  const raw = name + "__cb";
-	  const key = name + "__result";
-	  if (typeof window[name] === "function" && window[name].__gdx) return;
+	  const NS = window.WebHelper;
+	  if (typeof NS[name] === "function" && NS[name].__gdx) return;
 
-	  window[name] = (...args) => new Promise((resolve, reject) => {
+	  NS[name] = (...args) => new Promise((resolve, reject) => {
 		try {
-		  delete window[key];
-		  window[raw](...args);
+		  const id = (NS[name].__seq = (NS[name].__seq || 0) + 1);
+		  NS.__results[name] ??= {};
+		  delete NS.__results[name][String(id)];
+		  NS.__raw[name](id, ...args);
 		  queueMicrotask(() => {
-			const v = window[key];
+			const v = NS.__results[name][String(id)];
+			delete NS.__results[name][String(id)];
 			if (typeof v === "string") {
 			  try { resolve(JSON.parse(v)); } catch { resolve(v); }
 			} else {
@@ -77,19 +106,34 @@ func expose(target: Object, method_name: String) -> void:
 		  });
 		} catch (e) { reject(e); }
 	  });
-	  window[name].__gdx = true;
+	  NS[name].__gdx = true;
 	})("%s");
 	""" % js_name, true)
-	
-# Batch-expose all methods prefixed with 'js_'
-func expose_all(target: Object) -> void:
-	print("Exposing all")
 
+	# Cleanup this method when the owner leaves the tree
+	target.tree_exited.connect(func():
+		_unexpose(js_name),
+		CONNECT_ONE_SHOT
+	)
+
+# Expose all methods prefixed with 'js_'
+func expose_all(target: Object) -> void:
 	for mdict in target.get_method_list():
 		if mdict["name"].begins_with("js_"):
-			print("Exposing " + mdict["name"])
 			expose(target, mdict["name"])
 
-## Remove callback when owner exits scene tree
-func _on_owner_freed(cb_name: String) -> void:
-	_callbacks.erase(cb_name)
+# Remove a single exposed method
+func _unexpose(js_name: String) -> void:
+	if not OS.has_feature("web"):
+		return
+	_callbacks.erase(js_name)
+	_thunks.erase(js_name)
+
+	JavaScriptBridge.eval("""
+		(function(name){
+		  if (!window.WebHelper) return;
+		  try { delete WebHelper[name]; } catch (_) {}
+		  try { if (WebHelper.__raw) delete WebHelper.__raw[name]; } catch (_) {}
+		  try { if (WebHelper.__results) delete WebHelper.__results[name]; } catch (_) {}
+		})("%s");
+	""" % js_name, true)
