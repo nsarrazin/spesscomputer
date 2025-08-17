@@ -15,6 +15,9 @@ func _ready() -> void:
 	if existing_ships.is_empty():
 		spawn_ship()
 
+	WebHelper.expose_all(self)
+
+
 func spawn_ship(source_code: String = "") -> void:
 	if not ship_scene or not planet:
 		return
@@ -65,3 +68,15 @@ func update_camera() -> void:
 	if ships.size() > ship_idx:
 		var target_ship = ships[ship_idx]
 		camera.target_node = target_ship
+
+func js_getCurrentRegisters():
+	var active_ship = ships[ship_idx]
+	
+	if !active_ship.computer or !active_ship.computer.emulator:
+		return -1
+	
+	print(active_ship.computer.emulator.get_cpu_state())
+	return JSON.stringify(active_ship.computer.emulator.get_cpu_state())
+
+func js_ping():
+	return 123

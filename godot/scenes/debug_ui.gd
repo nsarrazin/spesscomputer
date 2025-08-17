@@ -9,6 +9,8 @@ var follow_pc: bool = true
 var active_page: int = 0
 
 func _process(_delta):
+	if OS.has_feature("web"): return
+	
 	if !camera || !camera.target_node:
 		return
 	var ship = camera.target_node

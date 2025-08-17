@@ -18,11 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 Utils="*res://Utils.gd"
-ImGuiRoot="*res://addons/imgui-godot/data/ImGuiRoot.tscn"
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/imgui-godot/plugin.cfg")
+WebHelper="*res://WebHelper.gd"
 
 [global_group]
 
@@ -38,4 +34,7 @@ ships=""
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+anti_aliasing/quality/msaa_2d=1
 anti_aliasing/quality/msaa_3d=1
+anti_aliasing/quality/screen_space_aa=1
+occlusion_culling/use_occlusion_culling=true

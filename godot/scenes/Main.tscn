@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://dmow5ogajbtl5"]
+[gd_scene load_steps=11 format=3 uid="uid://dmow5ogajbtl5"]
 
 [ext_resource type="PackedScene" uid="uid://d1he7h6c2ifoi" path="res://scenes/Ship/Ship.tscn" id="1_5j0jt"]
 [ext_resource type="Script" uid="uid://d1hcgilyrpu7d" path="res://scenes/main.gd" id="1_24mpf"]
@@ -6,7 +6,6 @@
 [ext_resource type="Script" uid="uid://b5gnak3bsmfe7" path="res://scenes/camera_3d.gd" id="2_oytva"]
 [ext_resource type="Script" uid="uid://cxknrpqwmhdwt" path="res://scenes/sun_light.gd" id="3_jlsqs"]
 [ext_resource type="PackedScene" uid="uid://dt0sit4eidov4" path="res://scenes/Planet/Planet.tscn" id="4_hrnxs"]
-[ext_resource type="Script" uid="uid://v705eve33wpp" path="res://scenes/debug_ui.gd" id="6_1srax"]
 [ext_resource type="PackedScene" uid="uid://bhhjyy2x236xb" path="res://scenes/Sun.tscn" id="7_nxtc6"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_qv8dj"]
@@ -48,10 +47,6 @@ max_zoom = 100.0
 transform = Transform3D(0.428786, 0, 0.903406, 0, 1, 0, -0.903406, 0, 0.428786, 0, 0, 0)
 radius = 2000.0
 gravitational_pull = 50000.0
-
-[node name="DebugUI" type="Node" parent="." node_paths=PackedStringArray("camera")]
-script = ExtResource("6_1srax")
-camera = NodePath("../Camera3D")
 
 [node name="Sun" parent="." instance=ExtResource("7_nxtc6")]
 transform = Transform3D(1000, 0, 0, 0, 1000, 0, 0, 0, 1000, 2e+06, 2e+06, 2e+06)
