@@ -16,7 +16,7 @@
 		"db:push": "drizzle-kit push",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"godot:install" : "rm static/build/* && cp ../export/* static/build/"
+		"godot:install": "rm static/build/* && cp ../export/* static/build/"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.3",
@@ -33,7 +33,7 @@
 		"prettier": "^3.3.2",
 		"prettier-plugin-svelte": "^3.2.6",
 		"prettier-plugin-tailwindcss": "^0.6.5",
-		"svelte": "^5.0.0",
+		"svelte": "^5.38.1",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^3.4.9",
 		"typescript": "^5.0.0",
@@ -42,6 +42,15 @@
 		"vitest": "^2.0.4"
 	},
 	"dependencies": {
+		"@codemirror/autocomplete": "^6.18.6",
+		"@codemirror/commands": "^6.8.1",
+		"@codemirror/language": "^6.11.3",
+		"@codemirror/lint": "^6.8.5",
+		"@codemirror/search": "^6.5.11",
+		"@codemirror/state": "^6.5.2",
+		"@codemirror/stream-parser": "^0.19.9",
+		"@codemirror/view": "^6.38.1",
+		"@lezer/highlight": "^1.2.1",
 		"@node-rs/argon2": "^1.1.0",
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",

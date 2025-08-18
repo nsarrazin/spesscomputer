@@ -1,10 +1,28 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 
-export default defineConfig({
-	plugins: [sveltekit()],
+const codemirrorPackages = [
+  '@codemirror/state',
+  '@codemirror/view',
+  '@codemirror/language',
+  '@codemirror/commands',
+  '@codemirror/search',
+  '@codemirror/lint',
+  '@codemirror/autocomplete',
+  '@codemirror/stream-parser',
+  '@lezer/common',
+  '@lezer/highlight'
+];
 
-	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}']
-	}
+export default defineConfig({
+  plugins: [sveltekit()],
+  resolve: {
+    dedupe: codemirrorPackages
+  },
+  optimizeDeps: {
+    include: codemirrorPackages
+  },
+  ssr: {
+    noExternal: codemirrorPackages
+  }
 });
