@@ -49,10 +49,11 @@ declare global {
 	declare const Engine: typeof Engine;
 
 	declare class WebHelper {
-		static getCurrentRegisters(): Record<"pc" | "a" | "x" | "y" | "p" | "sp", number>;
-		static nextShip(): void;
-		static previousShip(): void;
-		static getPage(page: number): ArrayBuffer;
+		static async getCurrentRegisters(): Promise<Record<"pc" | "a" | "x" | "y" | "p" | "sp", number>>;
+		static async nextShip(): Promise<void>;
+		static async previousShip(): Promise<void>;
+		static async getPage(page: number): Promise<ArrayBuffer>;
+		static async respawnShipWithCode(source: string): Promise<void>;
 	}
 
 	declare const WebHelper: typeof WebHelper;

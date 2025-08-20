@@ -7,10 +7,14 @@
 	let activeTab = $state('tab1');
 	let canvasEl: HTMLCanvasElement; // <canvas>
 	let wrapEl: HTMLDivElement; // canvas container
+	let isRespawning = $state(false);
+	let isEngineLoading = $state(true);
 
 	const TAB_KEY = 'retro.activeTab';
 
 	let engine: any = null;
+	let resizeObserver: ResizeObserver | null = null;
+
 	// Persist/restore active tab
 	onMount(() => {
 		try {
@@ -22,7 +26,54 @@
 		setTimeout(() => {
 			initGodotEngine();
 		}, 100);
+
+		// Set up canvas resizing
+		setupCanvasResizing();
+
+		// Cleanup on unmount
+		return () => {
+			if (resizeObserver) {
+				resizeObserver.disconnect();
+			}
+			window.removeEventListener('resize', resizeCanvas);
+		};
 	});
+
+	function setupCanvasResizing() {
+		if (!wrapEl || !canvasEl) return;
+
+		// Initial resize
+		resizeCanvas();
+
+		// Set up ResizeObserver to watch for container size changes
+		resizeObserver = new ResizeObserver(() => {
+			resizeCanvas();
+		});
+		resizeObserver.observe(wrapEl);
+
+		// Also listen for window resize as backup
+		window.addEventListener('resize', resizeCanvas);
+	}
+
+	function resizeCanvas() {
+		if (!canvasEl || !wrapEl) return;
+
+		const rect = wrapEl.getBoundingClientRect();
+		const dpr = window.devicePixelRatio || 1;
+
+		// Set the display size (CSS pixels)
+		canvasEl.style.width = rect.width + 'px';
+		canvasEl.style.height = rect.height + 'px';
+
+		// Set the actual size in memory (scaled for high-DPI displays)
+		canvasEl.width = rect.width * dpr;
+		canvasEl.height = rect.height * dpr;
+
+		// Notify the Godot engine if it's running
+		if (engine && engine.requestDisplayRefresh) {
+			engine.requestDisplayRefresh();
+		}
+	}
 
 	async function initGodotEngine() {
 		try {
@@ -39,7 +90,7 @@
 			// Use the same config as the original Godot export
 			const GODOT_CONFIG = {
 				args: [],
-				canvasResizePolicy: 1,
+				canvasResizePolicy: 0,
 				ensureCrossOriginIsolationHeaders: true,
 				executable: 'SpessComputer',
 				experimentalVK: false,
@@ -86,8 +137,16 @@
 				onProgress: onProgress
 			});
 			console.log('Game started successfully!');
+			
+			// Ensure canvas is properly sized after engine initialization
+			resizeCanvas();
+			
+			// Hide loading indicator
+			isEngineLoading = false;
 		} catch (error) {
 			console.error('Failed to start Godot engine:', error);
+			// Hide loading indicator even on error
+			isEngineLoading = false;
 		}
 	}
 
@@ -118,6 +177,21 @@
 
 			checkEngine();
 		});
+	}
+
+	async function handleRespawnShip() {
+		if (isRespawning) return;
+		
+		try {
+			isRespawning = true;
+			console.log('Respawning ship with code:', source);
+			await WebHelper.respawnShipWithCode(source);
+			console.log('Ship respawned successfully!');
+		} catch (error) {
+			console.error('Failed to respawn ship:', error);
+		} finally {
+			isRespawning = false;
+		}
 	}
 
 	$effect(() => {
@@ -205,10 +279,30 @@ inner_loop:
 			<div class="relative h-[60vh] lg:h-[78vh]" bind:this={wrapEl}>
 				<canvas
 					id="canvas"
-					class="absolute inset-0 h-full w-full"
+					class="absolute inset-0 block"
 					bind:this={canvasEl}
 					aria-label="main canvas"
 				></canvas>
+				
+				{#if isEngineLoading}
+					<div 
+						class="absolute inset-0 flex items-center justify-center bg-[#131318]/90 backdrop-blur-sm"
+						in:fade={{ duration: 200 }}
+						out:fade={{ duration: 300 }}
+					>
+						<div class="flex flex-col items-center gap-4 text-[#ffb86b]">
+							<div class="relative">
+								<!-- Spinning loading ring -->
+								<div class="w-12 h-12 border-2 border-[#ffb86b]/20 rounded-full"></div>
+								<div class="absolute inset-0 w-12 h-12 border-2 border-transparent border-t-[#ffb86b] rounded-full animate-spin"></div>
+							</div>
+							<div class="text-center">
+								<div class="text-sm tracking-[0.2em] font-mono">INITIALIZING</div>
+								<div class="text-xs tracking-[0.15em] text-[#ffb86b]/70 mt-1">VISUAL LINK</div>
+							</div>
+						</div>
+					</div>
+				{/if}
 			</div>
 		</div>
 		<!-- Corners -->
@@ -249,10 +343,22 @@ inner_loop:
 					role="tabpanel"
 					aria-labelledby="tab1"
 					aria-hidden="false"
-					class="h-full"
+					class="h-full flex flex-col gap-3"
 					in:fade={{ duration: 150 }}
 				>
-					<Asm6502Editor bind:value={source} className="h-full" />
+					<div class="flex-1">
+						<Asm6502Editor bind:value={source} className="h-full" />
+					</div>
+					<button
+						onclick={() => handleRespawnShip()}
+						class="transform border border-[#ffb86b]/40 bg-[#0f0f12] px-4 py-2 tracking-[0.18em]
+						       text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] transition hover:brightness-110
+						       active:scale-[0.98] hover:text-[#ffb86b] disabled:opacity-50 disabled:cursor-not-allowed"
+						disabled={isRespawning}
+						type="button"
+					>
+						{isRespawning ? 'RESPAWNING...' : 'RESPAWN SHIP WITH CODE'}
+					</button>
 				</div>
 			{:else}
 				<div id="tab-panel-1" role="tabpanel" aria-labelledby="tab1" aria-hidden="true" hidden>
@@ -418,5 +524,12 @@ inner_loop:
 	.corner.bl .v {
 		bottom: 0;
 		left: 0;
+	}
+
+	/* Canvas styling */
+	#canvas {
+		display: block;
+		outline: none;
+		background: transparent;
 	}
 </style>
