@@ -6,20 +6,25 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	if (!sessionToken) {
 		event.locals.user = null;
 		event.locals.session = null;
-		return resolve(event);
-	}
-
-	const { session, user } = await auth.validateSessionToken(sessionToken);
-	if (session) {
-		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 	} else {
-		auth.deleteSessionTokenCookie(event);
+		const { session, user } = await auth.validateSessionToken(sessionToken);
+		if (session) {
+			auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+		} else {
+			auth.deleteSessionTokenCookie(event);
+		}
+
+		event.locals.user = user;
+		event.locals.session = session;
 	}
 
-	event.locals.user = user;
-	event.locals.session = session;
-
-	return resolve(event);
+	const response = await resolve(event);
+	
+	// Add CORS headers required for SharedArrayBuffer/WebAssembly threading
+	response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+	response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+	
+	return response;
 };
 
 export const handle: Handle = handleAuth;

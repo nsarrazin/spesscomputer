@@ -16,7 +16,7 @@
 		"db:push": "drizzle-kit push",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"godot:install": "rm static/build/* && cp ../export/* static/build/"
+		"godot:install": "rm static/* && cp ../export/* static/"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.3",

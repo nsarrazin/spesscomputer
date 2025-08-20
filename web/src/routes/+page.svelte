@@ -10,6 +10,7 @@
 
 	const TAB_KEY = 'retro.activeTab';
 
+	let engine: any = null;
 	// Persist/restore active tab
 	onMount(() => {
 		try {
@@ -17,27 +18,112 @@
 			if (saved) activeTab = saved;
 		} catch {}
 
-		// Initial paint once (no repaint on resize per user request)
-		paintOnce();
+		// Initialize Godot engine after a short delay to ensure canvas is ready
+		setTimeout(() => {
+			initGodotEngine();
+		}, 100);
 	});
+
+	async function initGodotEngine() {
+		try {
+			// Wait for Engine to be available
+			await waitForEngine();
+
+			// Wait for canvas to be available
+			if (!canvasEl) {
+				console.error('Canvas element not available');
+				return;
+			}
+
+			// Use the same config as the original Godot export
+			const GODOT_CONFIG = {
+				args: [],
+				canvasResizePolicy: 1,
+				ensureCrossOriginIsolationHeaders: true,
+				executable: 'SpessComputer',
+				experimentalVK: false,
+				fileSizes: { 'SpessComputer.pck': 5892736, 'SpessComputer.wasm': 1648133 },
+				focusCanvas: true,
+				gdextensionLibs: ['godot_6502.wasm'],
+				serviceWorker: 'SpessComputer.service.worker.js'
+			};
+
+			// Check for missing browser features (same as original HTML)
+			// @ts-ignore
+			const missing = Engine.getMissingFeatures({
+				threads: true, // GODOT_THREADS_ENABLED
+			});
+
+			if (missing.length !== 0) {
+				console.error('Missing required browser features:', missing);
+				throw new Error('Missing browser features: ' + missing.join(', '));
+			}
+
+			// @ts-ignore
+			engine = new Engine(GODOT_CONFIG);
+
+			// Set up logging functions
+			function print(text: string) {
+				console.log('[Godot]', text);
+			}
+			function printError(text: string) {
+				console.error('[Godot Error]', text);
+			}
+			function onProgress(current: number, total: number) {
+				if (total > 0) {
+					console.log(`Loading: ${current} of ${total} bytes (${Math.round((current / total) * 100)}%)`);
+				} else {
+					console.log(`Loading: ${current} bytes`);
+				}
+			}
+
+			console.log('Starting game...');
+			await engine.startGame({ 
+				canvas: canvasEl,
+				onPrint: print, 
+				onPrintError: printError,
+				onProgress: onProgress
+			});
+			console.log('Game started successfully!');
+		} catch (error) {
+			console.error('Failed to start Godot engine:', error);
+		}
+	}
+
+	function waitForEngine(): Promise<void> {
+		return new Promise((resolve, reject) => {
+			// Check if Engine is already available
+			// @ts-ignore
+			if (typeof Engine !== 'undefined') {
+				resolve();
+				return;
+			}
+
+			// Wait for script to load
+			let attempts = 0;
+			const maxAttempts = 100; // 10 seconds max
+
+			const checkEngine = () => {
+				// @ts-ignore
+				if (typeof Engine !== 'undefined') {
+					resolve();
+				} else if (attempts >= maxAttempts) {
+					reject(new Error('Engine script failed to load'));
+				} else {
+					attempts++;
+					setTimeout(checkEngine, 100);
+				}
+			};
+
+			checkEngine();
+		});
+	}
+
 	$effect(() => {
 		try {
 			localStorage.setItem(TAB_KEY, activeTab);
 		} catch {}
 	});
-
-	function paintOnce() {
-		if (!canvasEl || !wrapEl) return;
-		const rect = wrapEl.getBoundingClientRect();
-		const dpr = window.devicePixelRatio || 1;
-		canvasEl.width = Math.max(1, Math.floor(rect.width * dpr));
-		canvasEl.height = Math.max(1, Math.floor(rect.height * dpr));
-		const ctx = canvasEl.getContext('2d');
-		if (!ctx) return;
-		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-		ctx.fillStyle = '#1f1f1f';
-		ctx.fillRect(0, 0, rect.width, rect.height);
-	}
 
 	function onTabsKey(e: KeyboardEvent) {
 		const ids = ['tab1', 'tab2', 'tab3'];
@@ -60,7 +146,7 @@
 		}
 	}
 
-  let source = $state(`THRUSTER_ZERO = $020D
+	let source = $state(`THRUSTER_ZERO = $020D
 
 .org $0600
 
@@ -97,6 +183,13 @@ inner_loop:
 `);
 </script>
 
+<svelte:head>
+	<script src="SpessComputer.js"></script>
+	<link id="-gd-engine-icon" rel="icon" type="image/png" href="SpessComputer.icon.png" />
+	<link rel="apple-touch-icon" href="SpessComputer.apple-touch-icon.png" />
+	<link rel="manifest" href="SpessComputer.manifest.json" />
+</svelte:head>
+
 <main class="grid gap-4 p-4 lg:grid-cols-[2fr_1fr]">
 	<!-- LEFT: Canvas panel -->
 	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)]">
@@ -109,7 +202,11 @@ inner_loop:
 			class="bg-[#131318] p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_1px_rgba(255,184,107,0.08)]"
 		>
 			<div class="relative h-[60vh] lg:h-[78vh]" bind:this={wrapEl}>
-				<canvas class="absolute inset-0 h-full w-full" bind:this={canvasEl} aria-label="main canvas"
+				<canvas
+					id="canvas"
+					class="absolute inset-0 h-full w-full"
+					bind:this={canvasEl}
+					aria-label="main canvas"
 				></canvas>
 			</div>
 		</div>
@@ -143,7 +240,7 @@ inner_loop:
 
 		<!-- Panels -->
 		<div
-			class="h-[calc(60vh-6rem)] lg:h-[calc(78vh-6rem)] bg-[#131318] p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_1px_rgba(255,184,107,0.08)]"
+			class="h-[calc(60vh-6rem)] bg-[#131318] p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_1px_rgba(255,184,107,0.08)] lg:h-[calc(78vh-6rem)]"
 		>
 			{#if activeTab === 'tab1'}
 				<div
@@ -154,8 +251,8 @@ inner_loop:
 					class="h-full"
 					in:fade={{ duration: 150 }}
 				>
-        <Asm6502Editor bind:value={source} className="h-full"/>
-      </div>
+					<Asm6502Editor bind:value={source} className="h-full" />
+				</div>
 			{:else}
 				<div id="tab-panel-1" role="tabpanel" aria-labelledby="tab1" aria-hidden="true" hidden>
 					<!-- hidden -->
@@ -171,7 +268,7 @@ inner_loop:
 					in:fade={{ duration: 150 }}
 				>
 					{@render PlaceholderElement('BRAVO')}
-          {source}
+					{source}
 				</div>
 			{:else}
 				<div
