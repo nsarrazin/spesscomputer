@@ -121,28 +121,28 @@
 			REGISTERS
 		</div>
 		{#if registers}
-			<div class="grid grid-cols-3 gap-2 text-xs">
-				<div class="flex justify-between">
+			<div class="grid grid-cols-3 gap-x-6 gap-y-2 text-xs">
+				<div class="inline-flex items-center gap-1">
 					<span class="text-[#ffb86b]/60">PC:</span>
 					<span class="text-[#ffb86b]">{formatAddress(registers.pc)}</span>
 				</div>
-				<div class="flex justify-between">
+				<div class="inline-flex items-center gap-1">
 					<span class="text-[#ffb86b]/60">A:</span>
 					<span class="text-[#ffb86b]">{formatRegister(registers.a)}</span>
 				</div>
-				<div class="flex justify-between">
+				<div class="inline-flex items-center gap-1">
 					<span class="text-[#ffb86b]/60">X:</span>
 					<span class="text-[#ffb86b]">{formatRegister(registers.x)}</span>
 				</div>
-				<div class="flex justify-between">
+				<div class="inline-flex items-center gap-1">
 					<span class="text-[#ffb86b]/60">Y:</span>
 					<span class="text-[#ffb86b]">{formatRegister(registers.y)}</span>
 				</div>
-				<div class="flex justify-between">
+				<div class="inline-flex items-center gap-1">
 					<span class="text-[#ffb86b]/60">P:</span>
 					<span class="text-[#ffb86b]">{formatRegister(registers.p)}</span>
 				</div>
-				<div class="flex justify-between">
+				<div class="inline-flex items-center gap-1">
 					<span class="text-[#ffb86b]/60">SP:</span>
 					<span class="text-[#ffb86b]">{formatRegister(registers.sp)}</span>
 				</div>
