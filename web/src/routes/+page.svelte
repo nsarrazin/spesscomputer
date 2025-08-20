@@ -155,12 +155,11 @@ inner_loop:
 		>
 			{@render Tab('tab1', 'Code Editor')}
 			{@render Tab('tab2', 'Memory Viewer')}
-			{@render Tab('tab3', 'Manual')}
 		</div>
 
 		<!-- Panels -->
 		<div
-			class="h-[calc(60vh-6rem)] bg-[#131318] p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_1px_rgba(255,184,107,0.08)] lg:h-[calc(78vh-6rem)]"
+			class="h-[calc(60vh-6rem)] bg-[#131318] p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_0_1px_rgba(255,184,107,0.08)] lg:h-[calc(78vh-6rem)]"
 		>
 			{#if activeTab === 'tab1'}
 				<div
@@ -174,16 +173,16 @@ inner_loop:
 					<div class="flex-1">
 						<Asm6502Editor bind:value={source} className="h-full" />
 					</div>
-					<button
+						<button
 						onclick={() => handleRespawnShip()}
 						class="transform border border-[#ffb86b]/40 bg-[#0f0f12] px-4 py-2 tracking-[0.18em]
 						       text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] transition hover:text-[#ffb86b]
 						       hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-						disabled={isRespawning}
+							disabled={isRespawning}
 						type="button"
-					>
+						>
 						{isRespawning ? 'RESPAWNING...' : 'RESPAWN SHIP WITH CODE'}
-					</button>
+						</button>
 				</div>
 			{:else}
 				<div id="tab-panel-1" role="tabpanel" aria-labelledby="tab1" aria-hidden="true" hidden>
@@ -216,28 +215,18 @@ inner_loop:
 					aria-labelledby="tab2"
 					aria-hidden="true"
 					hidden
-				></div>
+				>
+					{#if engine}
+						<div class="min-h-0 flex-1" style="display: none;">
+							<MemoryViewer />
+						</div>
+						<div class="mt-3" style="display: none;">
+							<FrequencySlider />
+						</div>
+					{/if}
+				</div>
 			{/if}
 
-			{#if activeTab === 'tab3'}
-				<div
-					id="tab-panel-3"
-					role="tabpanel"
-					aria-labelledby="tab3"
-					aria-hidden="false"
-					in:fade={{ duration: 150 }}
-				>
-					{@render PlaceholderElement('CHARLIE')}
-				</div>
-			{:else}
-				<div
-					id="tab-panel-3"
-					role="tabpanel"
-					aria-labelledby="tab3"
-					aria-hidden="true"
-					hidden
-				></div>
-			{/if}
 		</div>
 		{@render Corner('tl')}
 		{@render Corner('tr')}

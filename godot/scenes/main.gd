@@ -7,7 +7,7 @@ var ships: Array[Node] = []
 var ship_idx: int = 0
 
 # Called when the node enters the scene tree for the first time.
-func _ready() -> void:	
+func _ready() -> void:
 	ships = get_tree().get_nodes_in_group("ships")
 	# If no ships exist, spawn one
 	if ships.is_empty():
@@ -26,7 +26,7 @@ func spawn_ship(source_code: String = "") -> void:
 
 	# Position randomly around planet
 	var angle = randf() * TAU
-	var height = randf_range(planet.radius/2, planet.radius/2) # Just above planet surface (100-120km)
+	var height = randf_range(planet.radius / 2, planet.radius / 2) # Just above planet surface (100-120km)
 	var radius = randf_range(planet.radius, planet.radius) # Slightly away from planet surface (200-300km)
 	ship.position = Vector3(
 		cos(angle) * radius,
@@ -75,9 +75,19 @@ func js_getCurrentRegisters():
 
 	return active_ship.computer.emulator.get_cpu_state()
 
-func js_respawnShipWithCode(source=""):
+func js_respawnShipWithCode(source = ""):
+	# Properly free existing ships to prevent memory leaks
+	for ship in ships:
+		if is_instance_valid(ship):
+			ship.queue_free()
+	
+	# Clear ships array and reset index
 	ships = []
 	ship_idx = 0
+	
+	# Wait a frame to ensure ships are properly freed before spawning new one
+	await get_tree().process_frame
+	
 	spawn_ship(source)
 	
 func js_nextShip():
@@ -86,7 +96,7 @@ func js_nextShip():
 func js_prevShip():
 	previous_ship()
 	
-func js_getPage(page=-1):
+func js_getPage(page = -1):
 	var active_ship = ships[ship_idx]
 	
 	if !active_ship.computer or !active_ship.computer.emulator:
@@ -94,13 +104,13 @@ func js_getPage(page=-1):
 	
 	if page < 0:
 		var states = active_ship.computer.emulator.get_cpu_state()
-		var current_page = states['pc'] >> 8 
+		var current_page = states['pc'] >> 8
 		return active_ship.computer.emulator.read_page(current_page)
 
 
 	return active_ship.computer.emulator.read_page(page)
 	
-func js_setFrequency(frequency=5000):
+func js_setFrequency(frequency = 5000):
 	var active_ship = ships[ship_idx]
 	
 	if !active_ship.computer or !active_ship.computer.emulator:

@@ -9,6 +9,9 @@
 	let canvasEl: HTMLCanvasElement;
 	let wrapEl: HTMLDivElement;
 	let isEngineLoading = $state(true);
+	let loadingProgress = $state(0);
+	let loadingCurrent = $state(0);
+	let loadingTotal = $state(0);
 	let engine: any = null;
 	let resizeObserver: ResizeObserver | null = null;
 
@@ -23,12 +26,68 @@
 
 		// Cleanup on unmount
 		return () => {
+			cleanupEngine();
 			if (resizeObserver) {
 				resizeObserver.disconnect();
 			}
 			window.removeEventListener('resize', resizeCanvas);
 		};
 	});
+
+	function cleanupEngine() {
+		console.log('Cleaning up Godot engine...');
+		
+		// Reset loading state
+		isEngineLoading = true;
+		loadingProgress = 0;
+		loadingCurrent = 0;
+		loadingTotal = 0;
+		
+		// Cleanup engine instance
+		if (engine) {
+			try {
+				// Try to call cleanup methods if they exist
+				if (typeof engine.delete === 'function') {
+					engine.delete();
+				}
+				if (typeof engine.destroy === 'function') {
+					engine.destroy();
+				}
+				if (typeof engine.quit === 'function') {
+					engine.quit();
+				}
+			} catch (error) {
+				console.warn('Error during engine cleanup:', error);
+			}
+			
+			// Clear the engine reference
+			engine = null;
+		}
+
+		// Clear canvas
+		if (canvasEl) {
+			try {
+				// Clear canvas context
+				const ctx = canvasEl.getContext('webgl2') || canvasEl.getContext('webgl');
+				if (ctx) {
+					ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
+				}
+				
+				// Reset canvas size
+				canvasEl.width = 0;
+				canvasEl.height = 0;
+			} catch (error) {
+				console.warn('Error clearing canvas:', error);
+			}
+		}
+
+		// Force garbage collection if available (development)
+		if (typeof window.gc === 'function') {
+			window.gc();
+		}
+		
+		console.log('Godot engine cleanup completed');
+	}
 
 	function setupCanvasResizing() {
 		if (!wrapEl || !canvasEl) return;
@@ -116,11 +175,15 @@
 				console.error('[Godot Error]', text);
 			}
 			function onProgress(current: number, total: number) {
+				loadingCurrent = current;
+				loadingTotal = total;
 				if (total > 0) {
+					loadingProgress = Math.round((current / total) * 100);
 					console.log(
-						`Loading: ${current} of ${total} bytes (${Math.round((current / total) * 100)}%)`
+						`Loading: ${current} of ${total} bytes (${loadingProgress}%)`
 					);
 				} else {
+					loadingProgress = 0;
 					console.log(`Loading: ${current} bytes`);
 				}
 			}
@@ -211,6 +274,20 @@
 				<div class="text-center">
 					<div class="font-mono text-sm tracking-[0.2em]">INITIALIZING</div>
 					<div class="mt-1 text-xs tracking-[0.15em] text-[#ffb86b]/70">VISUAL LINK</div>
+					
+					{#if loadingTotal > 0}
+						<div class="mt-3 space-y-2">
+							<div class="text-xs font-mono tracking-wider text-[#ffb86b]/80">
+								{loadingProgress}%
+							</div>
+							<div class="relative h-1 w-32 rounded-full bg-[#ffb86b]/20">
+								<div 
+									class="absolute inset-y-0 left-0 rounded-full bg-[#ffb86b] transition-all duration-300 ease-out"
+									style="width: {loadingProgress}%"
+								></div>
+							</div>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</div>
