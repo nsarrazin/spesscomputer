@@ -13,6 +13,7 @@ export default {
       assets: 'build',
       fallback: 'index.html'
     }),
+    appDir: 'app',
     paths: {
       base: dev ? '' : `/${repoName}`
     }
