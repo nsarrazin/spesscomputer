@@ -28,7 +28,8 @@
 		try {
 			// Wait for Engine to be available
 			await waitForEngine();
-
+			
+			await navigator.serviceWorker.register('/SpessComputer.service.worker.js', { scope: '/' })
 			// Wait for canvas to be available
 			if (!canvasEl) {
 				console.error('Canvas element not available');
