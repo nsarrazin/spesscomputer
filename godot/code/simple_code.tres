@@ -4,40 +4,37 @@
 
 [resource]
 script = ExtResource("1_foe4q")
-value = "THRUSTER_ZERO = $020D
+value = "THRUSTER_1 = $020C
+FIRE_UP = 8
+FIRE_DOWN = 4
 
 .org $0600
 
 main_loop:
-	LDA #8                  ; Load thruster value 8
-	STA THRUSTER_ZERO       ; Set thruster to 8
-	JSR delay               ; Call delay subroutine
+	LDA #FIRE_UP
+	STA THRUSTER_1
+	JSR delay
 	
-	LDA #0                  ; Load thruster value 0
-	STA THRUSTER_ZERO       ; Set thruster to 0
-	JSR delay               ; Call delay subroutine
+	LDA #0
+	STA THRUSTER_1
+	JSR delay
 
-	LDA #4                  ; Load thruster value 4
-	STA THRUSTER_ZERO       ; Set thruster to 4
-	JSR delay               ; Call delay subroutine
+	LDA #FIRE_DOWN
+	STA THRUSTER_1
+	JSR delay
 
-	LDA #0                  ; Load thruster value 8
-	STA THRUSTER_ZERO       ; Set thruster to 8
-	JSR delay               ; Call delay subroutine
+	LDA #0
+	STA THRUSTER_1
+	JSR delay
 
-	JMP main_loop           ; Repeat forever
+	JMP main_loop
 
-; Delay subroutine - nested loops for shorter delay
 delay:
-	LDX #10                 ; Initialize outer loop counter (10 instead of 255)
-outer_loop:
-	LDY #$FF                ; Initialize inner loop counter
+	LDX #5
 inner_loop:
-	NOP                     ; Waste some cycles
-	DEY                     ; Decrement inner counter
-	BNE inner_loop          ; Loop until inner counter = 0
-	DEX                     ; Decrement outer counter
-	BNE outer_loop          ; Loop until outer counter = 0
-	RTS                     ; Return from subroutine
+	NOP
+	DEX
+	BNE inner_loop
+	RTS
 "
 metadata/_custom_type_script = "uid://c20nuqfi2thcd"

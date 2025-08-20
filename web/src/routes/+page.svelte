@@ -71,39 +71,37 @@
 		}
 	}
 
-	let source = $state(`THRUSTER_ZERO = $020D
+	let source = $state(`THRUSTER_1 = $020C
+FIRE_UP = 8
+FIRE_DOWN = 4
 
 .org $0600
 
 main_loop:
-	LDA #8
-	STA THRUSTER_ZERO
+	LDA #FIRE_UP
+	STA THRUSTER_1
 	JSR delay
 	
 	LDA #0
-	STA THRUSTER_ZERO
+	STA THRUSTER_1
 	JSR delay
 
-	LDA #4
-	STA THRUSTER_ZERO
+	LDA #FIRE_DOWN
+	STA THRUSTER_1
 	JSR delay
 
 	LDA #0
-	STA THRUSTER_ZERO
+	STA THRUSTER_1
 	JSR delay
 
 	JMP main_loop
 
 delay:
-	LDX #10
-outer_loop:
-	LDY #$FF
+	LDX #5
 inner_loop:
 	NOP
-	DEY
-	BNE inner_loop
 	DEX
-	BNE outer_loop
+	BNE inner_loop
 	RTS
 	`);
 
