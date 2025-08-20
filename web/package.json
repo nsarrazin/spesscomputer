@@ -16,7 +16,7 @@
 		"db:push": "drizzle-kit push",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"godot:install": "rm static/* && cp ../export/* static/"
+	    "deploy": "vite build && gh-pages -d build"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.3",
