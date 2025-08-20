@@ -260,7 +260,7 @@ inner_loop:
 </script>
 
 <svelte:head>
-	<script src="SpessComputer.js"></script>
+	<script src="/SpessComputer.js"></script>
 	<link id="-gd-engine-icon" rel="icon" type="image/png" href="SpessComputer.icon.png" />
 	<link rel="apple-touch-icon" href="SpessComputer.apple-touch-icon.png" />
 	<link rel="manifest" href="SpessComputer.manifest.json" />
