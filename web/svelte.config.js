@@ -11,11 +11,8 @@ export default {
     adapter: adapter({
       pages: 'build',
       assets: 'build',
-      fallback: 'index.html'
+      fallback: 'index.html', // SPA fallback
     }),
-    appDir: 'app',
-    paths: {
-      base: dev ? '' : `/${repoName}`
-    }
+    paths: { base: '' },      // custom domain => no /repo prefix
   }
 };

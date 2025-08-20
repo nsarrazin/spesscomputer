@@ -15,8 +15,7 @@
 		"db:start": "docker compose up",
 		"db:push": "drizzle-kit push",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio",
-	    "deploy": "vite build && gh-pages -d build"
+		"db:studio": "drizzle-kit studio"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.3",
@@ -30,7 +29,6 @@
 		"eslint": "^9.7.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.36.0",
-		"gh-pages": "^6.3.0",
 		"globals": "^15.0.0",
 		"prettier": "^3.3.2",
 		"prettier-plugin-svelte": "^3.2.6",
