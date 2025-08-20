@@ -29,8 +29,9 @@ impl CPUWrapper {
     }
 
     pub fn run_steps(&self, steps: u32) {
+        let mut guard = self.cpu.lock().unwrap();
         for _ in 0..steps {
-            self.run_step();
+            guard.single_step();
         }
     }
 
@@ -223,14 +224,16 @@ impl Emulator6502 {
     }
 
     #[func]
-    pub fn get_mmio(&self) -> Array<u8> {
-        let cpu = self.cpu().get_cpu();
-        let mut memory = cpu.lock().unwrap().memory;
-        let mut mmio = Array::new();
-        for i in 0x200..0x1200 {
-            mmio.push(memory.get_byte(i));
+    pub fn get_mmio(&self) -> PackedByteArray {
+        let cpu: Arc<Mutex<CPU<Memory, Nmos6502>>> = self.cpu().get_cpu();
+        let mut guard = cpu.lock().unwrap();
+
+        let mut arr = PackedByteArray::new();
+        arr.resize(0x1200 - 0x0200);
+        for (i, addr) in (0x0200..0x1200).enumerate() {
+            arr.insert(i, guard.memory.get_byte(addr));
         }
-        mmio
+        arr
     }
 
     #[func]
@@ -250,15 +253,17 @@ impl Emulator6502 {
     }
 
     #[func]
-    pub fn read_page(&self, page: u8) -> Array<u8> {
+    pub fn read_page(&self, page: u8) -> PackedByteArray {
         let cpu = self.cpu().get_cpu();
-        let mut memory = cpu.lock().unwrap().memory;
-        let mut result = Array::new();
-        let page_address = (page as u16 * 256) as u16;
-        for i in 0..256 {
-            result.push(memory.get_byte(page_address + i as u16));
+        let mut guard = cpu.lock().unwrap();
+
+        let base = (page as u16) << 8; 
+        let mut out = PackedByteArray::new();
+        out.resize(256);
+        for i in 0..256u16 {
+            out.insert(i.into(), guard.memory.get_byte(base + i));
         }
-        result
+        out
     }
 
     #[func]
@@ -285,5 +290,10 @@ impl Emulator6502 {
     #[func]
     pub fn wait_until_done(&self) {
         self.cpu().wait_until_done();
+    }
+
+    #[func]
+    pub fn set_frequency(&mut self, frequency: i32) {
+        self.frequency = frequency
     }
 }

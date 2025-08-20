@@ -65,6 +65,7 @@ func expose(target: Object, method_name: String) -> void:
 
 	var js_name := method_name.substr(3) if method_name.begins_with("js_") else method_name
 
+	print("Exposing " + js_name)
 	# Ensure namespace objects exist once
 	JavaScriptBridge.eval("""
 		window.WebHelper ??= {};

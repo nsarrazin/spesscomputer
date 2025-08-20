@@ -24,5 +24,8 @@ export default defineConfig({
   },
   ssr: {
     noExternal: codemirrorPackages
+  },
+  server: {
+    allowedHosts: [ 'dev.home.nsarrazin.com']
   }
 });

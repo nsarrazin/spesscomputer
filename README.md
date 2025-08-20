@@ -1,13 +1,5 @@
 # Spesscomputer
 
-## Setup
-
-Requires cc65 installed and the rust toolchain.
-
-```bash
-sudo apt install cc65
-```
-
 ### Compile godot
 
 We use godot with custom [large world coordinates](https://docs.godotengine.org/en/stable/tutorials/physics/large_world_coordinates.html). This requires [compiling godot from source](https://docs.godotengine.org/en/stable/contributing/development/compiling/index.html#toc-devel-compiling). 

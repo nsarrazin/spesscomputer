@@ -100,3 +100,12 @@ func js_getPage(page=-1):
 
 	return active_ship.computer.emulator.read_page(page)
 	
+func js_setFrequency(frequency=5000):
+	var active_ship = ships[ship_idx]
+	
+	if !active_ship.computer or !active_ship.computer.emulator:
+		return null
+
+	active_ship.computer.emulator.set_frequency(frequency)
+		
+	return true

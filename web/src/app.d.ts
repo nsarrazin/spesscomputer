@@ -54,6 +54,7 @@ declare global {
 		static async previousShip(): Promise<void>;
 		static async getPage(page?: number): Promise<ArrayBuffer>;
 		static async respawnShipWithCode(source: string): Promise<void>;
+		static async setFrequency(frequency: number): Promise<void>
 	}
 
 	declare const WebHelper: typeof WebHelper;

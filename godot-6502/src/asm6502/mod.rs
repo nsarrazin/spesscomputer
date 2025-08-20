@@ -53,7 +53,6 @@ pub fn assemble_string(code: &str) -> Result<Vec<u8>, String> {
     if context.target.len() % 16 != 0 {
         output.push('\n');
     }
-    godot_print!("{}", output);
     // Return the compiled binary
     Ok(context.target)
 }

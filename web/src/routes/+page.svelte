@@ -80,8 +80,11 @@
 		try {
 			// Wait for Engine to be available
 			await waitForEngine();
-			
-			await navigator.serviceWorker.register('/SpessComputer.service.worker.js', { scope: '/' })
+
+			await navigator.serviceWorker.register('/SpessComputer.service.worker.js', { scope: '/' });
+
+			navigator.serviceWorker.controller?.postMessage('clear');
+
 			// Wait for canvas to be available
 			if (!canvasEl) {
 				console.error('Canvas element not available');
@@ -104,7 +107,7 @@
 			// Check for missing browser features (same as original HTML)
 			// @ts-ignore
 			const missing = Engine.getMissingFeatures({
-				threads: true, // GODOT_THREADS_ENABLED
+				threads: true // GODOT_THREADS_ENABLED
 			});
 
 			if (missing.length !== 0) {
@@ -124,24 +127,26 @@
 			}
 			function onProgress(current: number, total: number) {
 				if (total > 0) {
-					console.log(`Loading: ${current} of ${total} bytes (${Math.round((current / total) * 100)}%)`);
+					console.log(
+						`Loading: ${current} of ${total} bytes (${Math.round((current / total) * 100)}%)`
+					);
 				} else {
 					console.log(`Loading: ${current} bytes`);
 				}
 			}
 
 			console.log('Starting game...');
-			await engine.startGame({ 
+			await engine.startGame({
 				canvas: canvasEl,
-				onPrint: print, 
+				onPrint: print,
 				onPrintError: printError,
 				onProgress: onProgress
 			});
 			console.log('Game started successfully!');
-			
+
 			// Ensure canvas is properly sized after engine initialization
 			resizeCanvas();
-			
+
 			// Hide loading indicator
 			isEngineLoading = false;
 		} catch (error) {
@@ -182,7 +187,7 @@
 
 	async function handleRespawnShip() {
 		if (isRespawning) return;
-		
+
 		try {
 			isRespawning = true;
 			console.log('Respawning ship with code:', source);
@@ -284,9 +289,9 @@ inner_loop:
 					bind:this={canvasEl}
 					aria-label="main canvas"
 				></canvas>
-				
+
 				{#if isEngineLoading}
-					<div 
+					<div
 						class="absolute inset-0 flex items-center justify-center bg-[#131318]/90 backdrop-blur-sm"
 						in:fade={{ duration: 200 }}
 						out:fade={{ duration: 300 }}
@@ -294,12 +299,14 @@ inner_loop:
 						<div class="flex flex-col items-center gap-4 text-[#ffb86b]">
 							<div class="relative">
 								<!-- Spinning loading ring -->
-								<div class="w-12 h-12 border-2 border-[#ffb86b]/20 rounded-full"></div>
-								<div class="absolute inset-0 w-12 h-12 border-2 border-transparent border-t-[#ffb86b] rounded-full animate-spin"></div>
+								<div class="h-12 w-12 rounded-full border-2 border-[#ffb86b]/20"></div>
+								<div
+									class="absolute inset-0 h-12 w-12 animate-spin rounded-full border-2 border-transparent border-t-[#ffb86b]"
+								></div>
 							</div>
 							<div class="text-center">
-								<div class="text-sm tracking-[0.2em] font-mono">INITIALIZING</div>
-								<div class="text-xs tracking-[0.15em] text-[#ffb86b]/70 mt-1">VISUAL LINK</div>
+								<div class="font-mono text-sm tracking-[0.2em]">INITIALIZING</div>
+								<div class="mt-1 text-xs tracking-[0.15em] text-[#ffb86b]/70">VISUAL LINK</div>
 							</div>
 						</div>
 					</div>
@@ -344,7 +351,7 @@ inner_loop:
 					role="tabpanel"
 					aria-labelledby="tab1"
 					aria-hidden="false"
-					class="h-full flex flex-col gap-3"
+					class="flex h-full flex-col gap-3"
 					in:fade={{ duration: 150 }}
 				>
 					<div class="flex-1">
@@ -353,8 +360,8 @@ inner_loop:
 					<button
 						onclick={() => handleRespawnShip()}
 						class="transform border border-[#ffb86b]/40 bg-[#0f0f12] px-4 py-2 tracking-[0.18em]
-						       text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] transition hover:brightness-110
-						       active:scale-[0.98] hover:text-[#ffb86b] disabled:opacity-50 disabled:cursor-not-allowed"
+						       text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] transition hover:text-[#ffb86b]
+						       hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
 						disabled={isRespawning}
 						type="button"
 					>
@@ -376,7 +383,9 @@ inner_loop:
 					class="h-full"
 					in:fade={{ duration: 150 }}
 				>
-					<MemoryViewer />
+					{#if !isEngineLoading}
+						<MemoryViewer />
+					{/if}
 				</div>
 			{:else}
 				<div
@@ -461,7 +470,6 @@ inner_loop:
 {/snippet}
 
 <style>
-	@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 	/* Corner orientations (utility-friendly) */
 	.corner.tl {
 		top: 0;
