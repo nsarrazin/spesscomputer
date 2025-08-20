@@ -127,6 +127,7 @@ unsafe impl ExtensionLibrary for MyExtension {}
 struct Emulator6502 {
     key: String,
     frequency: i32,
+    partial_step: f32,
 }
 
 #[godot_api]
@@ -137,6 +138,7 @@ impl Emulator6502 {
         return Gd::from_object(Emulator6502 {
             key: key.to_string(),
             frequency,
+            partial_step: 0.0,
         });
     }
 
@@ -200,6 +202,7 @@ impl Emulator6502 {
         return Gd::from_object(Emulator6502 {
             key: key.to_string(),
             frequency,
+            partial_step: 0.0,
         });
     }
 
@@ -212,10 +215,19 @@ impl Emulator6502 {
     }
 
     #[func]
-    pub fn execute_cycles_for_duration(&self, delta: f64) {
+    pub fn execute_cycles_for_duration(&mut self, delta: f32) {
         // Calculate how many CPU cycles to execute based on time delta and target frequency
-        let steps = (delta * self.frequency as f64) as u32;
-        self.cpu().run_steps_async(steps);
+        let steps = delta * self.frequency as f32;
+        if steps < 1.0 {
+            self.partial_step += steps;
+            if (self.partial_step >= 1.0) {
+                self.partial_step -= 1.0;
+                self.cpu().run_step();
+            }
+        } else {
+            self.partial_step = 0.0;
+            self.cpu().run_steps_async(steps as u32);
+        }
     }
 
     #[func]
@@ -224,16 +236,14 @@ impl Emulator6502 {
     }
 
     #[func]
-    pub fn get_mmio(&self) -> PackedByteArray {
-        let cpu: Arc<Mutex<CPU<Memory, Nmos6502>>> = self.cpu().get_cpu();
-        let mut guard = cpu.lock().unwrap();
-
-        let mut arr = PackedByteArray::new();
-        arr.resize(0x1200 - 0x0200);
-        for (i, addr) in (0x0200..0x1200).enumerate() {
-            arr.insert(i, guard.memory.get_byte(addr));
+    pub fn get_mmio(&self) -> Array<u8> {
+        let cpu = self.cpu().get_cpu();
+        let mut memory = cpu.lock().unwrap().memory;
+        let mut mmio = Array::new();
+        for i in 0x200..0x1200 {
+            mmio.push(memory.get_byte(i));
         }
-        arr
+        mmio
     }
 
     #[func]
@@ -253,17 +263,15 @@ impl Emulator6502 {
     }
 
     #[func]
-    pub fn read_page(&self, page: u8) -> PackedByteArray {
+    pub fn read_page(&self, page: u8) -> Array<u8> {
         let cpu = self.cpu().get_cpu();
-        let mut guard = cpu.lock().unwrap();
-
-        let base = (page as u16) << 8; 
-        let mut out = PackedByteArray::new();
-        out.resize(256);
-        for i in 0..256u16 {
-            out.insert(i.into(), guard.memory.get_byte(base + i));
+        let mut memory = cpu.lock().unwrap().memory;
+        let mut result = Array::new();
+        let page_address = (page as u16 * 256) as u16;
+        for i in 0..256 {
+            result.push(memory.get_byte(page_address + i as u16));
         }
-        out
+        result
     }
 
     #[func]

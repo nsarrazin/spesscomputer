@@ -5,7 +5,6 @@
     "ext:build:web" : "cd godot-6502 && cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten",
     "ext:build" : "cd godot-6502 && cargo build && cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten",
     "godot:export" : "$GODOT4_BIN --headless --path godot --export-debug \"Web\" ../web/static/SpessComputer.html",
-    "web:import" : "rm -f web/static/* && cp export/* web/static",
     "web:dev" : "cd web && npm run dev",
     "web:build" : "cd web && npm run build"
   },
