@@ -23,8 +23,12 @@ func _init() -> void:
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	set_initial_speed()
+
 	if source_code:
 		computer.emulator.load_program_from_string(source_code.value, 0x600)
+	
+	for address in range(0x200, 0x300):
+		computer.emulator.set_memory(address, 0)
 
 func set_initial_speed() -> void:
 	if not planet_node:
