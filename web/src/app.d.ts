@@ -52,7 +52,7 @@ declare global {
 		static async getCurrentRegisters(): Promise<Record<"pc" | "a" | "x" | "y" | "p" | "sp", number>>;
 		static async nextShip(): Promise<void>;
 		static async previousShip(): Promise<void>;
-		static async getPage(page: number): Promise<ArrayBuffer>;
+		static async getPage(page?: number): Promise<ArrayBuffer>;
 		static async respawnShipWithCode(source: string): Promise<void>;
 	}
 

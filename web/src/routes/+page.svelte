@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Asm6502Editor from '$lib/components/Asm6502Editor.svelte';
+	import MemoryViewer from '$lib/components/MemoryViewer.svelte';
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 
@@ -372,10 +373,10 @@ inner_loop:
 					role="tabpanel"
 					aria-labelledby="tab2"
 					aria-hidden="false"
+					class="h-full"
 					in:fade={{ duration: 150 }}
 				>
-					{@render PlaceholderElement('BRAVO')}
-					{source}
+					<MemoryViewer />
 				</div>
 			{:else}
 				<div
