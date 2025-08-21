@@ -13,7 +13,7 @@
 
 	const TAB_KEY = 'retro.activeTab';
 
-	let engine: any = null;
+	let engine: any = $state(null);
 
 	// Persist/restore active tab
 	onMount(() => {
