@@ -1,0 +1,5 @@
+You need to put the following files here:
+- godot.web.template_debug.double.wasm32.dlink.zip
+- godot.web.template_release.double.wasm32.dlink.zip
+
+Refer to the README for more information.

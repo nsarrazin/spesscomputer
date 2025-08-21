@@ -21,10 +21,9 @@ We also have to [build the export templates](https://docs.godotengine.org/en/lat
 ```
 scons platform=web dlink_enabled=yes target=template_release precision=double
 scons platform=web dlink_enabled=yes target=template_debug precision=double
-
 ```
 
-This is required for compatibility with the custom build of godot. 
+This is required for compatibility with the custom build of godot. When you are done with this step, drop the resulting `godot.web.template_debug.double.wasm32.dlink.zip` and `godot.web.template_release.double.wasm32.dlink.zip` in `godot/.godot_templates`.
 
 ### Compile library
 
