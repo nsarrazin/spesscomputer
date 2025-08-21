@@ -115,9 +115,9 @@ inner_loop:
 	<link rel="manifest" href="SpessComputer.manifest.json" />
 </svelte:head>
 
-<main class="grid gap-4 p-4 lg:grid-cols-[2fr_1fr]">
-	<!-- LEFT: Canvas panel -->
-	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)]">
+<main class="flex gap-4 p-4">
+	<!-- LEFT: Canvas panel with 4:3 aspect ratio -->
+	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)]" style="width: min(calc((100vh - 2rem) * 4/3), 60vw); height: min(calc(100vh - 2rem), calc(60vw * 3/4));">
 		<div
 			class="flex items-center justify-between border-b border-[#ffb86b]/30 px-3 py-2 text-xs tracking-[0.2em]"
 		>
@@ -125,6 +125,7 @@ inner_loop:
 		</div>
 		<div
 			class="bg-[#131318] shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_1px_rgba(255,184,107,0.08)]"
+			style="height: calc(100% - 2.75rem);"
 		>
 			<GodotEngine bind:this={godotEngineComponent} onEngineReady={handleEngineReady} />
 		</div>
@@ -136,7 +137,7 @@ inner_loop:
 	</section>
 
 	<!-- RIGHT: Tabs panel -->
-	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)]">
+	<section class="relative flex-1 bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)]">
 		<div
 			class="flex items-center justify-between border-b border-[#ffb86b]/30 px-3 py-2 text-xs tracking-[0.2em]"
 		>

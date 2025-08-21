@@ -249,7 +249,7 @@
 	}
 </script>
 
-<div class="relative h-[60vh] lg:h-[78vh]" bind:this={wrapEl}>
+<div class="relative h-full w-full" bind:this={wrapEl}>
 	<canvas
 		id="canvas"
 		class="absolute inset-0 block"

@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	// Props
-	let { initialFrequency = 5000 }: { initialFrequency?: number } = $props();
+	let { initialFrequency = 10 }: { initialFrequency?: number } = $props();
 
 	// Frequency control state and helpers
 	let frequency = $state(initialFrequency);
