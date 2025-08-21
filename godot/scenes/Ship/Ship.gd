@@ -22,6 +22,9 @@ func _init() -> void:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	# Set center of mass to ship's geometric center to prevent unwanted torque
+	center_of_mass = Vector3.ZERO
+	
 	set_initial_speed()
 
 	if source_code:

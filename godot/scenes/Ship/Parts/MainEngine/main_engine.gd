@@ -30,15 +30,10 @@ func run_logic(_delta):
 		
 		# Apply force in the forward direction based on throttle percentage
 		if engine_active:
-			force -= global_transform.basis.z * force_magnitude * throttle_percentage
+			force += global_transform.basis.y * force_magnitude * throttle_percentage
 			
 		# Update exhaust particles based on engine activity
 		exhaust.emitting = engine_active
 		
-		# Apply force at the position of the engine relative to the parent's center
-		var position_force = global_position - parent.global_position
-		
-		parent.apply_force(
-			force, # Force direction in global coordinates
-			position_force # Force position relative to parent's center
-		)
+		# Apply force through center of mass to avoid unwanted torque
+		parent.apply_central_force(force)

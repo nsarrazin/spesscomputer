@@ -6,6 +6,14 @@ extends Node3D
 var ships: Array[Node] = []
 var ship_idx: int = 0
 
+# Property to access the currently active ship
+@export var active_ship: Node:
+	get:
+		if ships.is_empty() or ship_idx >= ships.size():
+			return null
+		return ships[ship_idx]
+
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	ships = get_tree().get_nodes_in_group("ships")
@@ -15,7 +23,7 @@ func _ready() -> void:
 
 	WebHelper.expose_all(self)
 
-
+# Get the currently active ship
 func spawn_ship(source_code: String = "") -> void:
 	if not ship_scene or not planet:
 		return
@@ -44,8 +52,6 @@ func spawn_ship(source_code: String = "") -> void:
 
 func next_ship() -> void:
 	ship_idx += 1
-	if ship_idx >= ships.size():
-		ship_idx = 0
 
 func previous_ship() -> void:
 	ship_idx -= 1
@@ -68,11 +74,6 @@ func update_camera() -> void:
 		camera.target_node = target_ship
 
 func js_getCurrentRegisters():
-	var active_ship = ships[ship_idx]
-	
-	if !active_ship.computer or !active_ship.computer.emulator:
-		return -1
-
 	return active_ship.computer.emulator.get_cpu_state()
 
 func js_respawnShipWithCode(source = ""):
@@ -97,11 +98,6 @@ func js_prevShip():
 	previous_ship()
 	
 func js_getPage(page = -1):
-	var active_ship = ships[ship_idx]
-	
-	if !active_ship.computer or !active_ship.computer.emulator:
-		return null
-	
 	if page < 0:
 		var states = active_ship.computer.emulator.get_cpu_state()
 		var current_page = states['pc'] >> 8
@@ -110,12 +106,7 @@ func js_getPage(page = -1):
 
 	return active_ship.computer.emulator.read_page(page)
 	
-func js_setFrequency(frequency = 5000):
-	var active_ship = ships[ship_idx]
-	
-	if !active_ship.computer or !active_ship.computer.emulator:
-		return null
-
+func js_setFrequency(frequency = 10):
 	active_ship.computer.emulator.set_frequency(frequency)
 		
 	return true

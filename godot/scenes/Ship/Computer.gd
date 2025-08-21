@@ -7,7 +7,7 @@ var emulator: Emulator6502
 var pause: bool = false
 
 func _init() -> void:
-	emulator = Emulator6502.create_cpu(5000)
+	emulator = Emulator6502.create_cpu(10)
 
 func _process(delta: float) -> void:
 	if (Engine.get_process_frames() == 0):

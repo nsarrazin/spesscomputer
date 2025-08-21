@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dmow5ogajbtl5"]
+[gd_scene load_steps=14 format=3 uid="uid://dmow5ogajbtl5"]
 
 [ext_resource type="PackedScene" uid="uid://d1he7h6c2ifoi" path="res://scenes/Ship/Ship.tscn" id="1_5j0jt"]
 [ext_resource type="Script" uid="uid://d1hcgilyrpu7d" path="res://scenes/main.gd" id="1_24mpf"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://cxknrpqwmhdwt" path="res://scenes/sun_light.gd" id="3_jlsqs"]
 [ext_resource type="PackedScene" uid="uid://dt0sit4eidov4" path="res://scenes/Planet/Planet.tscn" id="4_hrnxs"]
 [ext_resource type="PackedScene" uid="uid://bhhjyy2x236xb" path="res://scenes/Sun.tscn" id="7_nxtc6"]
+[ext_resource type="Script" uid="uid://d0pjndw3c2bsy" path="res://scenes/player_controller.gd" id="8_jlsqs"]
+[ext_resource type="Shader" uid="uid://chanf2h2d3y0p" path="res://scenes/CRT.gdshader" id="9_q8u5g"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_qv8dj"]
 panorama = ExtResource("1_n0ryh")
@@ -24,6 +26,32 @@ ssao_enabled = true
 sdfgi_read_sky_light = false
 glow_enabled = true
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lhr70"]
+shader = ExtResource("9_q8u5g")
+shader_parameter/CRTgamma = 2.016
+shader_parameter/monitorgamma = 2.2
+shader_parameter/d = 3.0
+shader_parameter/CURVATURE = 1.0
+shader_parameter/R = 3.013
+shader_parameter/cornersize = 0.03
+shader_parameter/cornersmooth = 134.118
+shader_parameter/x_tilt = 0.0
+shader_parameter/y_tilt = 0.0
+shader_parameter/overscan_x = 100.0
+shader_parameter/overscan_y = 95.0
+shader_parameter/DOTMASK = 0.3
+shader_parameter/SHARPER = 1.0
+shader_parameter/scanline_weight = 0.5
+shader_parameter/lum = 0.2
+shader_parameter/interlace_toggle = 1.0
+shader_parameter/aspect_y_scale = 1.0
+shader_parameter/LINEAR_PROCESSING = true
+shader_parameter/OVERSAMPLE = false
+shader_parameter/bloom_intensity = 0.256
+shader_parameter/bloom_threshold = 0.283
+shader_parameter/bloom_radius_px = 8.0
+shader_parameter/corner_bg_color = Color(0.0745098, 0.0745098, 0.0941176, 1)
+
 [node name="Main" type="Node3D" node_paths=PackedStringArray("planet") groups=["affected_by_gravity"]]
 script = ExtResource("1_24mpf")
 ship_scene = ExtResource("1_5j0jt")
@@ -39,14 +67,14 @@ fov = 93.3
 near = 1.0
 far = 3e+07
 script = ExtResource("2_oytva")
-orbit_radius = 50.0
+orbit_radius = 15.0
 zoom_sensitivity = 1.0
 max_zoom = 100.0
 
 [node name="Planet" parent="." instance=ExtResource("4_hrnxs")]
 transform = Transform3D(0.428786, 0, 0.903406, 0, 1, 0, -0.903406, 0, 0.428786, 0, 0, 0)
-radius = 2000.0
-gravitational_pull = 50000.0
+radius = 5000.0
+gravitational_pull = 5e+06
 
 [node name="Sun" parent="." instance=ExtResource("7_nxtc6")]
 transform = Transform3D(1000, 0, 0, 0, 1000, 0, 0, 0, 1000, 2e+06, 2e+06, 2e+06)
@@ -57,3 +85,17 @@ shadow_enabled = true
 sky_mode = 1
 script = ExtResource("3_jlsqs")
 sun_node = NodePath("../Sun")
+
+[node name="PlayerController" type="Node3D" parent="."]
+script = ExtResource("8_jlsqs")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_lhr70")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

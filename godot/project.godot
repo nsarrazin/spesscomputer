@@ -20,6 +20,10 @@ config/icon="res://icon.svg"
 Utils="*res://Utils.gd"
 WebHelper="*res://WebHelper.gd"
 
+[editor]
+
+movie_writer/fps=95
+
 [global_group]
 
 affected_by_gravity="Rigid bodies affected by gravity"
