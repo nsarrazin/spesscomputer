@@ -1,5 +1,4 @@
 .vscode/settings.json
-export/**
 godot/.godot_templates/**
 godot/.godot/**
 godot-6502/target/**
