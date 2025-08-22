@@ -1,7 +1,12 @@
 extends Camera3D
 
 # Node that the camera should track
-@export var target_node: Node3D = null
+var _target_node: Node3D = null
+@export var target_node: Node3D:
+	set(value):
+		_set_target(value)
+	get:
+		return _get_target()
 @export var orbit_radius: float = 20.0
 @export var orbit_sensitivity: float = 0.01
 @export var zoom_sensitivity: float = 0.1
@@ -19,14 +24,17 @@ func _ready() -> void:
 		look_at(target_node.global_position, Vector3.UP)
 
 # Set the target node for the camera to track
-func set_target(node: Node3D) -> void:
-	target_node = node
-	if target_node:
+func _set_target(node: Node3D) -> void:
+	_target_node = node
+	if _target_node:
 		# Clamp radius to sensible limits for this target
 		var limits := _get_zoom_limits()
 		orbit_radius = clamp(orbit_radius, limits.x, limits.y)
-		position = target_node.global_position + Vector3(0, 0, orbit_radius)
-		look_at(target_node.global_position)
+		position = _target_node.global_position + Vector3(0, 0, orbit_radius)
+		look_at(_target_node.global_position)
+
+func _get_target() -> Node3D:
+	return _target_node
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not target_node:
