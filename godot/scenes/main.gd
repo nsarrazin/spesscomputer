@@ -32,14 +32,15 @@ func spawn_ship(source_code: String = "") -> void:
 	add_child(ship)
 	ship.planet_node = planet
 
-	# Position randomly around planet
-	var angle = randf() * TAU
-	var height = randf_range(planet.radius / 2, planet.radius / 2) # Just above planet surface (100-120km)
-	var radius = randf_range(planet.radius, planet.radius) # Slightly away from planet surface (200-300km)
+	var radius = randf_range(planet.radius * 1.2, planet.radius * 2) # Slightly away from planet surface (200-300km)
+	# Use spherical coordinates: convert to Cartesian
+	var theta = randf() * PI # Polar angle (0 to PI)
+	var phi = randf() * TAU # Azimuthal angle (0 to 2*PI)
+	
 	ship.position = Vector3(
-		cos(angle) * radius,
-		height,
-		sin(angle) * radius
+		radius * sin(theta) * cos(phi),
+		radius * cos(theta),
+		radius * sin(theta) * sin(phi)
 	)
 	
 	ship.set_initial_speed()
