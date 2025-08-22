@@ -32,8 +32,8 @@ var ship_idx: int = 0
 func _ready() -> void:
 	ships = get_tree().get_nodes_in_group("ships")
 	# If no ships exist, spawn one
-	# if ships.is_empty():
-	# 	spawn_ship()
+	if ships.is_empty():
+		spawn_ship()
 
 	WebHelper.expose_all(self)
 

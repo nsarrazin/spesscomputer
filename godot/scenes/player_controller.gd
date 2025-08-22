@@ -27,7 +27,7 @@ var ACTION_MAP := {
 	"yaw_right": [BOTTOM, TOP, TOP, BOTTOM],
 	"pitch_up": [TOP, TOP, BOTTOM, BOTTOM], # nose up
 	"pitch_down": [BOTTOM, BOTTOM, TOP, TOP], # nose down
-
+	
 	"roll_left": [LEFT, LEFT, LEFT, LEFT],
 	"roll_right": [RIGHT, RIGHT, RIGHT, RIGHT],
 }
