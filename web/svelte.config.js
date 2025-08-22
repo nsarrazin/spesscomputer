@@ -10,6 +10,6 @@ export default {
       assets: 'build',
       fallback: 'index.html', // SPA fallback
     }),
-    paths: { base: '' },      // custom domain => no /repo prefix
+    paths: { base: '/spesscomputer'},
   }
 };
