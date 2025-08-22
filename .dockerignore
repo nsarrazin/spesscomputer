@@ -1,0 +1,40 @@
+.vscode/settings.json
+export/**
+godot/.godot_templates/**
+godot/.godot/**
+godot-6502/target/**
+web/.svelte-kit/**
+web/node_modules/**
+web/build/**
+
+# VCS
+.git
+.gitmodules
+**/.git
+
+# Node / JS
+node_modules
+**/node_modules
+npm-debug.log
+pnpm-lock.yaml
+.yarn
+.yarn/cache
+
+# Python
+__pycache__/
+*.pyc
+.venv
+.venv*/
+.venv/**
+
+# Build outputs
+dist
+build
+out
+coverage
+*.log
+
+# Editors/OS
+.vscode
+.idea
+.DS_Store
