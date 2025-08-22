@@ -26,7 +26,6 @@
 	// Handle engine ready callback
 	function handleEngineReady(engineInstance: any) {
 		engine = engineInstance;
-		console.log('Engine ready in main component');
 	}
 
 	async function handleRespawnShip() {
@@ -34,9 +33,7 @@
 
 		try {
 			isRespawning = true;
-			console.log('Respawning ship with code:', source);
 			await WebHelper.respawnShipWithCode(source);
-			console.log('Ship respawned successfully!');
 		} catch (error) {
 			console.error('Failed to respawn ship:', error);
 		} finally {

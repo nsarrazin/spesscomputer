@@ -35,7 +35,6 @@
 	});
 
 	function cleanupEngine() {
-		console.log('Cleaning up Godot engine...');
 		
 		// Reset loading state
 		isEngineLoading = true;
@@ -86,7 +85,6 @@
 			window.gc();
 		}
 		
-		console.log('Godot engine cleanup completed');
 	}
 
 	function setupCanvasResizing() {
@@ -179,23 +177,17 @@
 				loadingTotal = total;
 				if (total > 0) {
 					loadingProgress = Math.round((current / total) * 100);
-					console.log(
-						`Loading: ${current} of ${total} bytes (${loadingProgress}%)`
-					);
 				} else {
 					loadingProgress = 0;
-					console.log(`Loading: ${current} bytes`);
 				}
 			}
 
-			console.log('Starting game...');
 			await engine.startGame({
 				canvas: canvasEl,
 				onPrint: print,
 				onPrintError: printError,
 				onProgress: onProgress
 			});
-			console.log('Game started successfully!');
 
 			// Ensure canvas is properly sized after engine initialization
 			resizeCanvas();
