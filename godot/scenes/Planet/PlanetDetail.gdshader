@@ -10,6 +10,16 @@ uniform float detail_fade_end   : hint_range(0.0, 1e9) = 600000.0;
 uniform float slope_darkening_strength : hint_range(0.0, 1.0) = 0.20;
 uniform float cavity_strength : hint_range(0.0, 1.0) = 0.12;
 
+// Atmosphere (rim) controls
+uniform float atmo_height : hint_range(0.0, 1e8) = 6000.0;
+uniform float atmo_intensity_rayleigh : hint_range(0.0, 2.0) = 0.25;
+uniform float atmo_intensity_mie : hint_range(0.0, 2.0) = 0.05;
+uniform float atmo_g : hint_range(-0.99, 0.99) = 0.8;
+uniform vec3 atmo_rayleigh_color : source_color = vec3(0.55, 0.75, 1.0);
+uniform vec3 atmo_mie_color : source_color = vec3(1.0, 0.95, 0.9);
+uniform vec3 atmo_sun_dir_object = vec3(0.0, -1.0, 0.0);
+uniform vec3 atmo_camera_pos_object = vec3(0.0);
+
 varying vec3 v_pos;
 varying vec3 v_nrm;
 
@@ -63,6 +73,16 @@ vec3 triplanar_gradient(vec3 p, vec3 n, float scale) {
 	return vec3(cx, cy, cz) / eps;
 }
 
+float rayleigh_phase(float cosTheta) {
+	return 3.0 / (16.0 * PI) * (1.0 + cosTheta * cosTheta);
+}
+
+float hg_phase(float cosTheta, float g_val) {
+	float g2 = g_val * g_val;
+	float denom = pow(max(1.0 + g2 - 2.0 * g_val * cosTheta, 1e-3), 1.5);
+	return (1.0 / (4.0 * PI)) * (1.0 - g2) / denom;
+}
+
 void vertex() {
 	v_pos = VERTEX;      // object-space
 	v_nrm = NORMAL;      // object-space
@@ -103,7 +123,23 @@ void fragment() {
 	albedo *= (1.0 - 0.15 * cavity_term);
 	albedo = clamp(albedo, vec3(0.08), vec3(0.92));
 
+	// Rim atmosphere contribution (pure shader)
+	vec3 cam_pos = atmo_camera_pos_object;
+	vec3 view_dir = normalize(cam_pos - v_pos);
+	float height = max(length(v_pos) - planet_radius, 0.0);
+	float H = max(atmo_height, 1.0);
+	float density = exp(-height / (0.5 * H));
+	float horizon = pow(1.0 - clamp(dot(radial, view_dir), 0.0, 1.0), 1.25);
+	float thickness = density * (0.6 + 1.6 * horizon);
+	vec3 sun_dir = normalize(atmo_sun_dir_object);
+	float cosTheta = clamp(dot(view_dir, sun_dir), -1.0, 1.0);
+	float pr = rayleigh_phase(cosTheta);
+	float pm = hg_phase(cosTheta, atmo_g);
+	vec3 atmo_scatter = atmo_rayleigh_color * atmo_intensity_rayleigh * pr + atmo_mie_color * atmo_intensity_mie * pm;
+	vec3 atmo_emission = atmo_scatter * thickness;
+
 	ALBEDO = albedo;
 	SPECULAR = 0.02;
 	ROUGHNESS = clamp(0.96 + 0.03 * (1.0 - slope) + 0.04 * cavity_term, 0.0, 1.0);
+	EMISSION = atmo_emission;
 }

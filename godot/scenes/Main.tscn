@@ -82,6 +82,13 @@ transform = Transform3D(1000, 0, 0, 0, 1000, 0, 0, 0, 1000, 2e+06, 2e+06, 2e+06)
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." node_paths=PackedStringArray("sun_node")]
 light_energy = 2.445
 shadow_enabled = true
+shadow_bias = 0.02
+shadow_normal_bias = 3.0
+shadow_reverse_cull_face = true
+shadow_blur = 2.0
+directional_shadow_blend_splits = true
+directional_shadow_fade_start = 0.85
+directional_shadow_max_distance = 20000.0
 sky_mode = 1
 script = ExtResource("3_jlsqs")
 sun_node = NodePath("../Sun")

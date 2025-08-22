@@ -37,6 +37,16 @@ extends Node3D
 @export var smooth_lambda: float = 0.5
 @export var alternate_quad_diagonals: bool = true
 
+# Atmosphere controls
+@export var atmosphere_height_scale: float = 0.3 # fraction of radius
+@export var atmosphere_intensity: float = 0.25
+@export var atmosphere_mie_intensity: float = 0.05
+@export var atmosphere_g: float = 0.8 # mie anisotropy
+@export var atmosphere_color: Color = Color(0.55, 0.75, 1.0)
+@export var atmosphere_mie_color: Color = Color(1.0, 0.95, 0.9)
+@export var atmosphere_segments: int = 64
+@export var use_mesh_atmosphere: bool = false
+
 var noise: FastNoiseLite = FastNoiseLite.new() # detail
 var noise_base: FastNoiseLite = FastNoiseLite.new()
 var noise_micro: FastNoiseLite = FastNoiseLite.new()
@@ -50,6 +60,10 @@ var range_basis: Basis
 # Collision nodes created/managed at runtime
 var landing_static_body: StaticBody3D
 var landing_collision_shape: CollisionShape3D
+
+# Atmosphere nodes/material
+var atmosphere_mesh_instance: MeshInstance3D
+var atmosphere_material: ShaderMaterial
 
 func _ready() -> void:
 	# Configure noise 
@@ -87,6 +101,10 @@ func _ready() -> void:
 	
 	# Generate mesh with collision
 	generate_planet()
+	
+	# Setup atmosphere shell if enabled
+	if use_mesh_atmosphere:
+		_create_or_update_atmosphere()
 	
 	initialized = true
 
@@ -280,6 +298,9 @@ func _ensure_collision_nodes() -> void:
 	pm.friction = 1.0
 	pm.bounce = 0.0
 	landing_static_body.physics_material_override = pm
+	# Ensure the physics engine knows the surface is moving (rotating planet)
+	landing_static_body.constant_linear_velocity = Vector3.ZERO
+	landing_static_body.constant_angular_velocity = Vector3(0.0, rotation_speed, 0.0)
 
 func _update_collision_from_mesh() -> void:
 	_ensure_collision_nodes()
@@ -364,25 +385,26 @@ func get_color_for_vertex_index(i: int) -> Color:
 	var dir: Vector3 = v.normalized()
 	var lat: float = absf(dir.y)
 	
-	# Base Mars-like palette by height
+	# Base red palette by height (valleys darkest red, tops deep red but not bright)
 	var base: Color = mars_height_to_color(t)
 	
-	# Subtle color variation (towards darker tint rather than white)
+	# Subtle color variation (towards darker tint rather than white), fade near poles
 	var n: float = noise.get_noise_3d(dir.x * 120.0, dir.y * 120.0, dir.z * 120.0)
-	var var_amt: float = 0.04 * (0.5 + 0.5 * n)
-	base = base.lerp(Color(0.10, 0.05, 0.04), var_amt)
+	var var_amt: float = 0.03 * (0.5 + 0.5 * n)
+	var polar_fade: float = 1.0 - smoothstep(0.86, 0.98, lat)
+	base = base.lerp(Color(0.12, 0.07, 0.05), var_amt * polar_fade)
 	
-	# Polar caps: narrower and less bright
-	var snow_lat_mask: float = smoothstep(0.84, 0.98, lat)
-	var snow_height_mask: float = smoothstep(0.65, 0.90, t)
-	var snow_mix: float = clampf(0.6 * snow_lat_mask * maxf(0.35, snow_height_mask), 0.0, 1.0)
-	var snow_color: Color = Color(0.92, 0.94, 0.96)
+	# Ice caps: latitude-driven, smoother and more consistent
+	var snow_lat_mask: float = smoothstep(0.86, 0.98, lat)
+	var snow_mix: float = clampf(pow(snow_lat_mask, 1.7) * 0.5, 0.0, 0.6)
+	var snow_color: Color = Color(0.82, 0.88, 0.92)
 	return base.lerp(snow_color, snow_mix)
 
 func mars_height_to_color(t: float) -> Color:
-	var low = Color(0.28, 0.12, 0.08) # dark basaltic red-brown
-	var mid = Color(0.58, 0.30, 0.16) # rusty orange
-	var high = Color(0.86, 0.62, 0.40) # light dusty tan
+	# Mars-like red-orange ramp
+	var low = Color(0.24, 0.10, 0.07) # darker red-brown for lowlands
+	var mid = Color(0.55, 0.28, 0.14) # rusty red-orange
+	var high = Color(0.76, 0.50, 0.32) # dusty orange (not too light)
 	if t < 0.5:
 		return low.lerp(mid, t / 0.5)
 	else:
@@ -403,6 +425,13 @@ func create_planet_material() -> ShaderMaterial:
 	material.set_shader_parameter("detail_fade_end", radius * 3.0)
 	material.set_shader_parameter("slope_darkening_strength", 0.20)
 	material.set_shader_parameter("cavity_strength", 0.12)
+	# Atmosphere rim uniforms for surface shader
+	material.set_shader_parameter("atmo_height", radius * atmosphere_height_scale)
+	material.set_shader_parameter("atmo_intensity_rayleigh", atmosphere_intensity)
+	material.set_shader_parameter("atmo_intensity_mie", atmosphere_mie_intensity)
+	material.set_shader_parameter("atmo_g", clampf(atmosphere_g, -0.99, 0.99))
+	material.set_shader_parameter("atmo_rayleigh_color", atmosphere_color)
+	material.set_shader_parameter("atmo_mie_color", atmosphere_mie_color)
 	return material
 
 func _physics_process(delta: float) -> void:
@@ -411,6 +440,16 @@ func _physics_process(delta: float) -> void:
 		
 	# Rotate planet
 	rotate_y(rotation_speed * delta)
+	
+	# Keep platform motion in sync so landed bodies stick to surface
+	if is_instance_valid(landing_static_body):
+		landing_static_body.constant_angular_velocity = Vector3(0.0, rotation_speed, 0.0)
+	
+	# Update atmosphere params each frame (sun direction may change)
+	if use_mesh_atmosphere:
+		_update_atmosphere_params()
+	else:
+		_update_surface_atmo_params()
 	
 	# Apply gravitational pull only to bodies that aren't too far
 	for body in get_tree().get_nodes_in_group("affected_by_gravity"):
@@ -425,3 +464,103 @@ func _physics_process(delta: float) -> void:
 			var force = direction.normalized() * force_magnitude
 			
 			body.apply_central_force(force)
+
+# Atmosphere helpers
+func _create_or_update_atmosphere() -> void:
+	var shell_height: float = max(1.0, radius * atmosphere_height_scale)
+	var atm_radius: float = radius + shell_height
+	if atmosphere_mesh_instance == null or not is_instance_valid(atmosphere_mesh_instance):
+		atmosphere_mesh_instance = MeshInstance3D.new()
+		atmosphere_mesh_instance.name = "Atmosphere"
+		var sm := SphereMesh.new()
+		sm.radius = atm_radius
+		sm.height = atm_radius * 2.0
+		sm.radial_segments = max(24, atmosphere_segments)
+		sm.rings = max(12, atmosphere_segments / 2)
+		atmosphere_mesh_instance.mesh = sm
+		atmosphere_mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(atmosphere_mesh_instance)
+		
+		var shader: Shader = load("res://scenes/Planet/Atmosphere.gdshader")
+		atmosphere_material = ShaderMaterial.new()
+		atmosphere_material.shader = shader
+		atmosphere_mesh_instance.material_override = atmosphere_material
+	else:
+		# Update sphere size if radius changed
+		if atmosphere_mesh_instance.mesh is SphereMesh:
+			var sm2: SphereMesh = atmosphere_mesh_instance.mesh
+			sm2.radius = atm_radius
+			sm2.height = atm_radius * 2.0
+	
+	_update_atmosphere_params()
+
+func _get_directional_light() -> DirectionalLight3D:
+	# Try sibling named DirectionalLight3D
+	var n = get_parent()
+	if n and n.has_node("DirectionalLight3D"):
+		var l = n.get_node("DirectionalLight3D")
+		if l is DirectionalLight3D:
+			return l
+	# Fallback: search the tree (first one)
+	for node in get_tree().get_nodes_in_group(""):
+		# no dedicated group; skip
+		pass
+	# Broad fallback: scan root children
+	var root = get_tree().current_scene
+	if root:
+		for c in root.get_children():
+			if c is DirectionalLight3D:
+				return c
+	return null
+
+func _update_atmosphere_params() -> void:
+	if atmosphere_material == null:
+		return
+	var shell_height: float = max(1.0, radius * atmosphere_height_scale)
+	var atm_radius: float = radius + shell_height
+	atmosphere_material.set_shader_parameter("planet_radius", radius)
+	atmosphere_material.set_shader_parameter("atmosphere_height", shell_height)
+	atmosphere_material.set_shader_parameter("intensity_rayleigh", atmosphere_intensity)
+	atmosphere_material.set_shader_parameter("intensity_mie", atmosphere_mie_intensity)
+	atmosphere_material.set_shader_parameter("g", clampf(atmosphere_g, -0.99, 0.99))
+	atmosphere_material.set_shader_parameter("rayleigh_color", atmosphere_color)
+	atmosphere_material.set_shader_parameter("mie_color", atmosphere_mie_color)
+	# Sun direction in world
+	var light := _get_directional_light()
+	var sun_dir_world: Vector3 = Vector3(0, -1, 0)
+	if light:
+		# DirectionalLight points towards -Z in its local; light direction is -basis.z
+		sun_dir_world = - (light.global_transform.basis.z).normalized()
+	# Convert to planet local/object space
+	var sun_dir_obj: Vector3 = (global_transform.basis.inverse() * sun_dir_world).normalized()
+	atmosphere_material.set_shader_parameter("sun_dir_object", sun_dir_obj)
+	# Visual tweaks
+	atmosphere_material.set_shader_parameter("outer_radius", atm_radius)
+	# Camera position in planet object space
+	var cam := get_viewport().get_camera_3d()
+	if cam:
+		var cam_obj: Vector3 = to_local(cam.global_transform.origin)
+		atmosphere_material.set_shader_parameter("camera_pos_object", cam_obj)
+
+func _update_surface_atmo_params() -> void:
+	var smat := mesh_instance.material_override as ShaderMaterial
+	if smat == null:
+		return
+	smat.set_shader_parameter("atmo_height", radius * atmosphere_height_scale)
+	smat.set_shader_parameter("atmo_intensity_rayleigh", atmosphere_intensity)
+	smat.set_shader_parameter("atmo_intensity_mie", atmosphere_mie_intensity)
+	smat.set_shader_parameter("atmo_g", clampf(atmosphere_g, -0.99, 0.99))
+	smat.set_shader_parameter("atmo_rayleigh_color", atmosphere_color)
+	smat.set_shader_parameter("atmo_mie_color", atmosphere_mie_color)
+	# Sun direction
+	var light := _get_directional_light()
+	var sun_dir_world: Vector3 = Vector3(0, -1, 0)
+	if light:
+		sun_dir_world = - (light.global_transform.basis.z).normalized()
+	var sun_dir_obj: Vector3 = (global_transform.basis.inverse() * sun_dir_world).normalized()
+	smat.set_shader_parameter("atmo_sun_dir_object", sun_dir_obj)
+	# Camera pos in object
+	var cam := get_viewport().get_camera_3d()
+	if cam:
+		var cam_obj: Vector3 = to_local(cam.global_transform.origin)
+		smat.set_shader_parameter("atmo_camera_pos_object", cam_obj)
