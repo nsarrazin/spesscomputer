@@ -26,10 +26,10 @@ extends Node3D
 
 # Feature shaping controls
 @export var terrace_steps: int = 7
-@export var terrace_strength: float = 0.35
+@export var terrace_strength: float = 3
 @export var range_strength: float = 0.35
-@export var range_frequency_main: float = 2.6
-@export var range_anisotropy: float = 0.35
+@export var range_frequency_main: float = 1.6
+@export var range_anisotropy: float = 0.2
 @export var range_rotation_deg: float = 47.0
 
 # Mesh smoothing/triangulation controls
@@ -38,14 +38,14 @@ extends Node3D
 @export var alternate_quad_diagonals: bool = true
 
 # Atmosphere controls
-@export var atmosphere_height_scale: float = 0.3 # fraction of radius
-@export var atmosphere_intensity: float = 0.25
-@export var atmosphere_mie_intensity: float = 0.05
-@export var atmosphere_g: float = 0.8 # mie anisotropy
+@export var atmosphere_height_scale: float = 0.4 # fraction of radius
+@export var atmosphere_intensity: float = 0.5
+@export var atmosphere_mie_intensity: float = 0.3
+@export var atmosphere_g: float = 0.5 # mie anisotropy
 @export var atmosphere_color: Color = Color(0.55, 0.75, 1.0)
 @export var atmosphere_mie_color: Color = Color(1.0, 0.95, 0.9)
-@export var atmosphere_segments: int = 64
-@export var use_mesh_atmosphere: bool = false
+@export var atmosphere_segments: int = 32
+@export var use_mesh_atmosphere: bool = true
 
 var noise: FastNoiseLite = FastNoiseLite.new() # detail
 var noise_base: FastNoiseLite = FastNoiseLite.new()
