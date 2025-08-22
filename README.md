@@ -25,14 +25,22 @@ scons platform=web dlink_enabled=yes target=template_debug precision=double
 
 This is required for compatibility with the custom build of godot. When you are done with this step, drop the resulting `godot.web.template_debug.double.wasm32.dlink.zip` and `godot.web.template_release.double.wasm32.dlink.zip` in `godot/.godot_templates`.
 
-### Compile library
+### Compile Rust extension
 
-Navigate to the `godot-6502` directory and run:
+You can compile the release build with `npm run ext:build`. 
 
-```bash
-cargo build
+For development inside of godot just run `cargo build`, for the web export in debug mode run `cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten`.
+
+### Build godot project
+
+Make sure you have built the export templates. You can export the release build with `npm run godot:export` which is equivalent to doing
+
+```
+$GODOT4_BIN --headless --path godot --export-release \"Web\" ../web/static/SpessComputer.html
 ```
 
-### Run godot
+### Build webapp
 
-Open the godot project in the `godot` directory and run the scene.
+Install dependencies in the web folder: `cd web && npm i`
+
+Once the godot build is in the static folder, you can run `npm run web:dev` in the root of the repo or export to an SPA with `npm run build`.
