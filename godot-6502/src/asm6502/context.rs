@@ -16,6 +16,7 @@ pub struct Context {
     pub work_directory: PathBuf,
     pub silent: bool,
     pub code_files: RefCell<Vec<CodeFile>>,
+    pub offset_to_line: RefCell<HashMap<u16, u32>>, // output offset -> source line (0-based)
 }
 
 #[derive(Debug)]
@@ -83,6 +84,7 @@ impl Default for Context {
             files: Default::default(),
             silent: false,
             code_files: Default::default(),
+            offset_to_line: Default::default(),
         }
     }
 }

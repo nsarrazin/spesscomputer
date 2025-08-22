@@ -93,6 +93,7 @@ main_loop:
 
 	JMP main_loop
 
+
 delay:
 	LDX #5
 inner_loop:
@@ -163,10 +164,10 @@ inner_loop:
 					role="tabpanel"
 					aria-labelledby="tab1"
 					aria-hidden="false"
-					class="flex h-full flex-col gap-3"
+					class="flex h-full min-h-0 flex-col gap-3"
 					in:fade={{ duration: 150 }}
 				>
-					<div class="flex-1">
+					<div class="flex-1 min-h-0 overflow-y-auto">
 						<Asm6502Editor bind:value={source} className="h-full" />
 					</div>
 						<button
@@ -179,6 +180,11 @@ inner_loop:
 						>
 						{isRespawning ? 'RESPAWNING...' : 'RESPAWN SHIP WITH CODE'}
 						</button>
+					{#if engine}
+						<div class="mt-3">
+							<FrequencySlider />
+						</div>
+					{/if}
 				</div>
 			{:else}
 				<div id="tab-panel-1" role="tabpanel" aria-labelledby="tab1" aria-hidden="true" hidden>

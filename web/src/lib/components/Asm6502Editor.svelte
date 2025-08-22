@@ -322,14 +322,57 @@
     },
     '.cm-asm-variable': {
       color: '#cbd5e1'
+    },
+    // Current execution line highlight
+    '.cm-exec-line': {
+      backgroundColor: '#fde68a33'
     }
   }, { dark: true });
+
+  // Dynamic exec-line highlighter
+  const setExecLineEffect = StateEffect.define<number | null>();
+  const execLineField = StateField.define<DecorationSet>({
+    create() {
+      return Decoration.none;
+    },
+    update(value, tr) {
+      value = value.map(tr.changes);
+      for (const e of tr.effects) {
+        if (e.is(setExecLineEffect)) {
+          if (e.value == null) return Decoration.none;
+          const lineNum1 = Math.max(1, Math.min(tr.state.doc.lines, (e.value as number) + 1));
+          const line = tr.state.doc.line(lineNum1);
+          const deco = Decoration.line({ class: 'cm-exec-line' }).range(line.from);
+          return Decoration.set([deco]);
+        }
+      }
+      return value;
+    },
+    provide: f => EditorView.decorations.from(f)
+  });
+
+  let lastExecLine: number | null = null;
+
+  async function pollExecLine() {
+    try {
+      const helper = (window as any).WebHelper;
+      if (!helper || !view) return;
+      const line: number | null | undefined = await helper.getLineNumber();
+      if (line !== lastExecLine && view) {
+        lastExecLine = line ?? null;
+        view.dispatch({ effects: setExecLineEffect.of(lastExecLine) });
+      }
+    } catch (err) {
+      // ignore polling errors to keep loop running
+    }
+  }
 
   // Initialize editor
   function createEditor() {
     try {
       const extensions: Extension[] = [
         highlightField,
+        execLineField,
         lineNumbers(),
         keymap.of([
           { key: 'Tab', run: insertTab },
@@ -373,6 +416,13 @@
 
   onMount(() => {
     view = createEditor();
+
+    function updateLoop() {
+      pollExecLine();
+      requestAnimationFrame(updateLoop);
+    }
+
+    requestAnimationFrame(updateLoop);
   });
 
   onDestroy(() => {

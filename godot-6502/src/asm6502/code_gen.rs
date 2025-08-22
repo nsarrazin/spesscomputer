@@ -545,6 +545,7 @@ impl CodeGenerator {
         while self.size > self.index {
             let ast_index = self.eat()?;
             let ast = asts.get(ast_index).map(|item| &item.ast);
+            let before_len = context.target.len();
 
             match ast {
                 Some(Ast::InstrImplied(position)) => {
@@ -561,6 +562,17 @@ impl CodeGenerator {
                 }
                 None => return Err(CodeGeneratorError::InternalError),
             };
+
+            let after_len = context.target.len();
+            if after_len > before_len {
+                let line = asts[ast_index].line as u32;
+                let mut map = context.offset_to_line.borrow_mut();
+                for off in before_len..after_len {
+                    if off <= u16::MAX as usize {
+                        map.insert(off as u16, line);
+                    }
+                }
+            }
         }
 
         self.build_unresolved_relative_jump(&mut context.target)?;

@@ -32,6 +32,15 @@ var ACTION_MAP := {
 	"roll_right": [RIGHT, RIGHT, RIGHT, RIGHT],
 }
 
+var actions := [
+	"translate_forward", "translate_backward",
+	"translate_left", "translate_right",
+	"translate_up", "translate_down",
+	"yaw_left", "yaw_right",
+	"pitch_up", "pitch_down",
+	"roll_left", "roll_right",
+]
+
 func _ready() -> void:
 	main_scene = get_node_or_null(main_scene_path)
 	if main_scene == null:
@@ -43,6 +52,17 @@ func _physics_process(_delta: float) -> void:
 	if ship == null:
 		return
 
+	# Early return if no relevant inputs are pressed
+	var has_input := false
+
+	
+	for action in actions:
+		if Input.is_action_pressed(action):
+			has_input = true
+			break
+	
+	if not has_input:
+		return
 	# Compute thruster masks from held inputs
 	var masks := _compute_thruster_masks()
 
@@ -58,15 +78,6 @@ func _physics_process(_delta: float) -> void:
 
 func _compute_thruster_masks() -> Array:
 	var masks := [0, 0, 0, 0]
-
-	var actions := [
-		"translate_forward", "translate_backward",
-		"translate_left", "translate_right",
-		"translate_up", "translate_down",
-		"yaw_left", "yaw_right",
-		"pitch_up", "pitch_down",
-		"roll_left", "roll_right",
-	]
 
 	# OR all pressed action patterns together
 	for a in actions:
@@ -85,10 +96,6 @@ func _compute_thruster_masks() -> Array:
 		masks[i] = m
 
 	return masks
-
-# If you still want event-based one-shots, you can use this, but thrusters are now fully per-frame.
-func _unhandled_input(_event: InputEvent) -> void:
-	pass
 
 func _get_active_ship() -> Node:
 	if main_scene and "active_ship" in main_scene:

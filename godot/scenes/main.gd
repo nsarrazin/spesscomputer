@@ -152,3 +152,9 @@ func js_resume():
 func js_step():
 	active_ship.computer.step()
 	return true
+
+func js_getLineNumber(pc = -1):
+	if pc < 0:
+		var states = active_ship.computer.emulator.get_cpu_state()
+		pc = states['pc']
+	return active_ship.computer.emulator.get_line_number(pc)

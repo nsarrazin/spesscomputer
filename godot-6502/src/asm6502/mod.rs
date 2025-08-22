@@ -13,8 +13,15 @@ use ast::{AstGenerator, AstGeneratorError};
 use code_gen::{CodeGenerator, CodeGeneratorError};
 use context::Context;
 use parser::{ParseError, Parser};
+use std::collections::HashMap;
 
-pub fn assemble_string(code: &str) -> Result<Vec<u8>, String> {
+pub struct AssemblyOutput {
+    pub bytes: Vec<u8>,
+    pub start_address: u16,
+    pub offset_to_line: HashMap<u16, u32>,
+}
+
+pub fn assemble_string(code: &str) -> Result<AssemblyOutput, String> {
     let data = code.as_bytes().to_vec();
     let context = Context::default();
 
@@ -53,8 +60,12 @@ pub fn assemble_string(code: &str) -> Result<Vec<u8>, String> {
     if context.target.len() % 16 != 0 {
         output.push('\n');
     }
-    // Return the compiled binary
-    Ok(context.target)
+    // Return compiled binary with mapping
+    Ok(AssemblyOutput {
+        bytes: context.target,
+        start_address: generator.start_point,
+        offset_to_line: context.offset_to_line.into_inner(),
+    })
 }
 
 #[cfg(test)]
@@ -66,7 +77,8 @@ mod tests {
         let code = "LDA #$00";
         let result = assemble_string(code);
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), vec![0xA9, 0x00]);
+        let out = result.unwrap();
+        assert_eq!(out.bytes, vec![0xA9, 0x00]);
     }
 
     #[test]

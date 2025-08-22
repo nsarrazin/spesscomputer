@@ -17,6 +17,8 @@ struct CPUWrapper {
     cpu: Arc<Mutex<CPU<Memory, Nmos6502>>>,
     is_running: Arc<Mutex<bool>>,
     completion_cvar: Arc<(Mutex<bool>, Condvar)>,
+    start_address: Arc<Mutex<u16>>, // program load address
+    offset_to_line: Arc<Mutex<HashMap<u16, u32>>>, // offset in program -> line
 }
 
 impl CPUWrapper {
@@ -40,7 +42,7 @@ impl CPUWrapper {
         let is_running = self.is_running.clone();
         let completion_cvar = self.completion_cvar.clone();
 
-        let (lock, cvar) = &*completion_cvar;
+        let (lock, _cvar) = &*completion_cvar;
         *is_running.lock().unwrap() = true;
         *lock.lock().unwrap() = true;
 
@@ -64,6 +66,23 @@ impl CPUWrapper {
             // godot_warn!("Waiting for CPU to finish previous processing... Is the server lagging?");
             completed = cvar.wait(completed).unwrap();
         }
+    }
+
+    pub fn set_mapping(&self, start_address: u16, mapping: HashMap<u16, u32>) {
+        *self.start_address.lock().unwrap() = start_address;
+        let mut guard = self.offset_to_line.lock().unwrap();
+        guard.clear();
+        guard.extend(mapping.into_iter());
+    }
+
+    pub fn get_line_number(&self, pc: u16) -> Option<u32> {
+        let start: u16 = *self.start_address.lock().unwrap();
+        if pc < start {
+            return None;
+        }
+        let offset = pc.wrapping_sub(start);
+        let map = self.offset_to_line.lock().unwrap();
+        map.get(&offset).copied()
     }
 }
 
@@ -89,7 +108,12 @@ impl Orchestrator {
         }
     }
 
-    pub fn create_cpu(&mut self, start_address: u16, program: Vec<u8>) -> Uuid {
+    pub fn create_cpu(
+        &mut self,
+        start_address: u16,
+        program: Vec<u8>,
+        mapping: HashMap<u16, u32>,
+    ) -> Uuid {
         let key = uuid::Uuid::new_v4();
 
         let cpu = Arc::new(Mutex::new(CPU::new(Memory::new(), Nmos6502)));
@@ -100,14 +124,15 @@ impl Orchestrator {
             .set_bytes(start_address, &program);
         cpu.lock().unwrap().registers.program_counter = start_address;
 
-        self.cpus.insert(
-            key,
-            CPUWrapper {
-                cpu,
-                is_running: Arc::new(Mutex::new(false)),
-                completion_cvar: Arc::new((Mutex::new(false), Condvar::new())),
-            },
-        );
+        let wrapper = CPUWrapper {
+            cpu,
+            is_running: Arc::new(Mutex::new(false)),
+            completion_cvar: Arc::new((Mutex::new(false), Condvar::new())),
+            start_address: Arc::new(Mutex::new(start_address)),
+            offset_to_line: Arc::new(Mutex::new(mapping)),
+        };
+
+        self.cpus.insert(key, wrapper);
 
         return key;
     }
@@ -134,7 +159,10 @@ struct Emulator6502 {
 impl Emulator6502 {
     #[func]
     pub fn create_cpu(frequency: i32) -> Gd<Self> {
-        let key = ORCHESTRATOR.lock().unwrap().create_cpu(0x0600, Vec::new());
+        let key = ORCHESTRATOR
+            .lock()
+            .unwrap()
+            .create_cpu(0x0600, Vec::new(), HashMap::new());
         return Gd::from_object(Emulator6502 {
             key: key.to_string(),
             frequency,
@@ -146,7 +174,8 @@ impl Emulator6502 {
     pub fn load_program(&self, program: Array<u8>, start_address: u16) {
         let key = Uuid::parse_str(&self.key).unwrap();
         let guard = ORCHESTRATOR.lock().unwrap();
-        let cpu = guard.get_cpu(key).clone().get_cpu();
+        let cpuw = guard.get_cpu(key).clone();
+        let cpu = cpuw.get_cpu();
 
         // Convert Godot Array<u8> to Vec<u8>
         let mut vec_program = Vec::with_capacity(program.len() as usize);
@@ -161,44 +190,68 @@ impl Emulator6502 {
             .memory
             .set_bytes(start_address, &vec_program);
         cpu.lock().unwrap().registers.program_counter = start_address;
+        // Do not change mapping here; use load_program_from_string to set mapping when assembling
+        *cpuw.start_address.lock().unwrap() = start_address;
     }
 
     #[func]
     pub fn load_program_from_string(&self, assembly_code: String, start_address: u16) {
-        let program = match asm6502::assemble_string(&assembly_code) {
-            Ok(bytes) if !bytes.is_empty() => {
+        // most likely we'll want to add a mapping between PC <-> code line number here
+        // even though we only access the CPU in load_program so this might be an issue.
+        let output = match asm6502::assemble_string(&assembly_code) {
+            Ok(out) => {
                 godot_print!("Successfully compiled assembly from string");
-                bytes
+                out
             }
             _ => {
                 godot_error!("Failed to compile assembly from string");
-                Vec::new()
+                return;
             }
         };
 
         // Convert Vec<u8> to Godot Array<u8>
         let mut godot_array = Array::new();
-        for byte in program {
-            godot_array.push(byte);
+        for byte in &output.bytes {
+            godot_array.push(*byte);
         }
 
         self.load_program(godot_array, start_address);
+
+        // Store mapping in the CPU wrapper for later lookup
+        let key = Uuid::parse_str(&self.key).unwrap();
+        let mut orchestrator = ORCHESTRATOR.lock().unwrap();
+        let cpuw = orchestrator.get_cpu(key).clone();
+        cpuw.set_mapping(start_address, output.offset_to_line);
     }
 
     #[func]
     pub fn create_cpu_from_string(assembly_code: String, frequency: i32) -> Gd<Self> {
-        let program = match asm6502::assemble_string(&assembly_code) {
-            Ok(bytes) if !bytes.is_empty() => {
+        let output = match asm6502::assemble_string(&assembly_code) {
+            Ok(out) => {
                 godot_print!("Successfully compiled assembly from string");
-                bytes
+                out
             }
             _ => {
                 godot_error!("Failed to compile assembly from string");
-                Vec::new()
+                // create empty CPU if failed
+                let key =
+                    ORCHESTRATOR
+                        .lock()
+                        .unwrap()
+                        .create_cpu(0x0600, Vec::new(), HashMap::new());
+                return Gd::from_object(Emulator6502 {
+                    key: key.to_string(),
+                    frequency,
+                    partial_step: 0.0,
+                });
             }
         };
 
-        let key = ORCHESTRATOR.lock().unwrap().create_cpu(0x0600, program);
+        let key =
+            ORCHESTRATOR
+                .lock()
+                .unwrap()
+                .create_cpu(0x0600, output.bytes, output.offset_to_line);
         return Gd::from_object(Emulator6502 {
             key: key.to_string(),
             frequency,
@@ -303,5 +356,14 @@ impl Emulator6502 {
     #[func]
     pub fn set_frequency(&mut self, frequency: i32) {
         self.frequency = frequency
+    }
+
+    #[func]
+    pub fn get_line_number(&self, pc: u16) -> i32 {
+        let line = self.cpu().get_line_number(pc);
+        match line {
+            Some(line) => line as i32,
+            None => -1,
+        }
     }
 }
