@@ -82,13 +82,17 @@ RUN godot -v -e --quit --headless
 
 # ENTRYPOINT ["/bin/bash"]
 
+ENV PATH="/opt/blender:${PATH}"
+
 RUN /src/scripts/setup_editor_settings_version.sh && \
     /src/scripts/install_blender.sh && \
     /src/scripts/setup_blender_editor_path.sh
-  
-ENV PATH="/opt/blender:${PATH}"
 
 WORKDIR /src/godot
+
+# Install numpy for Python in project-build stage
+RUN apt-get update && apt-get install -y python3-pip python3-numpy && rm -rf /var/lib/apt/lists/*
+
 
 RUN $GODOT4_BIN --headless --path . --import
 RUN $GODOT4_BIN --headless --path . --export-release "Web" /web/SpessComputer.html --verbose
