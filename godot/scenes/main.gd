@@ -110,3 +110,15 @@ func js_setFrequency(frequency = 10):
 	active_ship.computer.emulator.set_frequency(frequency)
 		
 	return true
+
+func js_pause():
+	active_ship.computer.pause_emulator()
+	return true
+
+func js_resume():
+	active_ship.computer.resume_emulator()
+	return true
+
+func js_step():
+	active_ship.computer.step()
+	return true

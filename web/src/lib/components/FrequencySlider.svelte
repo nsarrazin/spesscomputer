@@ -7,6 +7,33 @@
 	// Frequency control state and helpers
 	let frequency = $state(initialFrequency);
 	let sliderValue = $state(0);
+	let isPaused = $state(false);
+
+	async function handlePause() {
+		try {
+			await WebHelper.pause();
+			isPaused = true;
+		} catch (err) {
+			console.error('Failed to pause', err);
+		}
+	}
+
+	async function handleResume() {
+		try {
+			await WebHelper.resume();
+			isPaused = false;
+		} catch (err) {
+			console.error('Failed to resume', err);
+		}
+	}
+
+	async function handleStep() {
+		try {
+			await WebHelper.step();
+		} catch (err) {
+			console.error('Failed to step', err);
+		}
+	}
 	
 	const FREQ_MIN = 1;
 	const FREQ_MAX = 50000;
@@ -80,6 +107,45 @@
 </script>
 
 <div class="grid gap-2">
+	<div class="mb-1 flex items-center justify-between">
+		<div class="flex gap-2">
+			{#if !isPaused}
+				<button
+					onclick={handlePause}
+					class="border border-[#ffb86b]/40 bg-[#0f0f12] px-2 py-1 text-[11px] tracking-[0.18em] text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] hover:text-[#ffb86b]"
+					aria-label="Pause"
+					type="button"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true">
+						<rect x="6" y="4" width="4" height="16" rx="1" />
+						<rect x="14" y="4" width="4" height="16" rx="1" />
+					</svg>
+				</button>
+			{:else}
+				<button
+					onclick={handleResume}
+					class="border border-[#ffb86b]/40 bg-[#0f0f12] px-2 py-1 text-[11px] tracking-[0.18em] text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] hover:text-[#ffb86b]"
+					aria-label="Play"
+					type="button"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true">
+						<polygon points="8,5 8,19 19,12" />
+					</svg>
+				</button>
+				<button
+					onclick={handleStep}
+					class="border border-[#ffb86b]/40 bg-[#0f0f12] px-2 py-1 text-[11px] tracking-[0.18em] text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] hover:text-[#ffb86b]"
+					aria-label="Step"
+					type="button"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true">
+						<rect x="5" y="5" width="2" height="14" rx="1" />
+						<polygon points="9,5 9,19 20,12" />
+					</svg>
+				</button>
+			{/if}
+		</div>
+	</div>
 	<div class="flex items-center justify-between text-xs tracking-[0.15em] text-[#ffb86b]/80">
 		<span>CPU FREQUENCY</span>
 		<span class="font-mono">{formatFrequency(frequency)}</span>

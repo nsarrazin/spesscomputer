@@ -237,7 +237,7 @@
 								class="p-1 text-center {isPC
 									? 'bg-[#ffb86b]/30 font-bold text-[#000]'
 									: 'text-[#ffb86b] hover:bg-[#ffb86b]/10'} 
-								       cursor-default transition-colors"
+								       cursor-default transition-none"
 								title="Address: {formatAddress(address)}, Value: {value}"
 							>
 								{formatHex(value)}
