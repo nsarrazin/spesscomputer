@@ -9,7 +9,6 @@ export default {
       pages: 'build',
       assets: 'build',
       fallback: 'index.html', // SPA fallback
-    }),
-    paths: { base: '/spesscomputer'},
+    })
   }
 };

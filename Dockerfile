@@ -90,6 +90,7 @@ ENV PATH="/opt/blender:${PATH}"
 
 WORKDIR /src/godot
 
+RUN $GODOT4_BIN --headless --path . --import
 RUN $GODOT4_BIN --headless --path . --export-release "Web" /web/SpessComputer.html --verbose
 
 # final stage, builds the svelte app with the wasm dependencies
