@@ -9,17 +9,31 @@ var ship_idx: int = 0
 # Property to access the currently active ship
 @export var active_ship: Node:
 	get:
-		if ships.is_empty() or ship_idx >= ships.size():
+		if ships.is_empty():
 			return null
-		return ships[ship_idx]
+		if ship_idx < 0:
+			ship_idx = 0
+		var tries := 0
+		while tries < ships.size():
+			if ship_idx >= ships.size():
+				ship_idx = 0
+			var s = ships[ship_idx]
+			if is_instance_valid(s):
+				return s
+			else:
+				ships.remove_at(ship_idx)
+				if ships.is_empty():
+					return null
+			tries += 1
+		return null
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	ships = get_tree().get_nodes_in_group("ships")
 	# If no ships exist, spawn one
-	if ships.is_empty():
-		spawn_ship()
+	# if ships.is_empty():
+	# 	spawn_ship()
 
 	WebHelper.expose_all(self)
 
@@ -63,16 +77,31 @@ func _process(_delta: float) -> void:
 	update_camera()
 
 func update_camera() -> void:
-	if ships.is_empty():
-		return
-		
 	var camera = $Camera3D as Camera3D
 	if not camera:
 		return
-		
-	if ships.size() > ship_idx:
+	
+	# If no ships, orbit the planet at 2x its radius
+	if ships.is_empty():
+		if planet:
+			if camera.target_node != planet:
+				camera.orbit_radius = planet.radius * 2.0
+				camera.target_node = planet
+		return
+	
+	# If we have a valid ship at the current index, track it
+	if ship_idx >= 0 and ship_idx < ships.size():
 		var target_ship = ships[ship_idx]
-		camera.target_node = target_ship
+		if is_instance_valid(target_ship):
+			if camera.target_node != target_ship:
+				camera.target_node = target_ship
+			return
+	
+	# Fallback: index invalid or ship freed, orbit planet
+	if planet:
+		if camera.target_node != planet:
+			camera.orbit_radius = planet.radius * 2.0
+			camera.target_node = planet
 
 func js_getCurrentRegisters():
 	return active_ship.computer.emulator.get_cpu_state()

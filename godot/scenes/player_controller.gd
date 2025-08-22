@@ -53,7 +53,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		ship.computer.emulator.set_memory(0x020A, 0)
 func _get_active_ship() -> Node:
 	if main_scene and "active_ship" in main_scene:
-		return main_scene.active_ship
+		var ship: Node = main_scene.active_ship
+		if is_instance_valid(ship):
+			return ship
 	return null
 
 # ================= Controller Methods =================
