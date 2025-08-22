@@ -21,7 +21,7 @@ class BridgeThunk:
 	# Called from JS as: __raw[name](call_id, ...args)
 	func bridge_cb(args: Array) -> void:
 		var call_id = args[0] if args.size() > 0 else 0
-		var argv    = args.slice(1, args.size()) if args.size() > 1 else []
+		var argv = args.slice(1, args.size()) if args.size() > 1 else []
 
 		if !is_instance_valid(target) or !target.has_method(method):
 			return
@@ -64,8 +64,6 @@ func expose(target: Object, method_name: String) -> void:
 		return
 
 	var js_name := method_name.substr(3) if method_name.begins_with("js_") else method_name
-
-	print("Exposing " + js_name)
 	# Ensure namespace objects exist once
 	JavaScriptBridge.eval("""
 		window.WebHelper ??= {};
