@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_back, depth_draw_opaque, shadows_enabled;
+render_mode cull_back, depth_draw_opaque;
 
 uniform float planet_radius : hint_range(0.0, 1e9) = 200000.0;
 uniform float detail_scale : hint_range(0.1, 128.0) = 24.0;
