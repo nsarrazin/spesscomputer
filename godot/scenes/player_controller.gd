@@ -41,52 +41,85 @@ var actions := [
 	"roll_left", "roll_right",
 ]
 
+# Track which actions are currently pressed
+var pressed_actions := {}
+
 func _ready() -> void:
 	main_scene = get_node_or_null(main_scene_path)
 	if main_scene == null:
 		main_scene = get_tree().current_scene
 	_ensure_default_actions()
+	
+	# Initialize pressed actions tracking
+	for action in actions:
+		pressed_actions[action] = false
 
-func _physics_process(_delta: float) -> void:
+func _input(event: InputEvent) -> void:
 	var ship := _get_active_ship()
 	if ship == null:
 		return
-
-	# Early return if no relevant inputs are pressed
-	var has_input := false
-
 	
+	# Handle primary action (spacebar) - immediate response
+	if event.is_action_pressed("action_primary"):
+		ship.computer.emulator.set_memory(0x020A, 255)
+		get_viewport().set_input_as_handled()
+		return
+	elif event.is_action_released("action_primary"):
+		ship.computer.emulator.set_memory(0x020A, 0)
+		get_viewport().set_input_as_handled()
+		return
+	
+	# Handle movement actions
+	var action_changed := false
 	for action in actions:
-		if Input.is_action_pressed(action):
-			has_input = true
+		if event.is_action_pressed(action):
+			if not pressed_actions[action]:
+				pressed_actions[action] = true
+				action_changed = true
+		elif event.is_action_released(action):
+			if pressed_actions[action]:
+				pressed_actions[action] = false
+				action_changed = true
+	
+	# Only update thrusters if an action state changed
+	if action_changed:
+		_update_thrusters(ship)
+		get_viewport().set_input_as_handled()
+
+func _update_thrusters(ship: Node) -> void:
+	# Check if any movement actions are pressed
+	var has_movement_input := false
+	for action in actions:
+		if pressed_actions[action]:
+			has_movement_input = true
 			break
 	
-	if not has_input:
+	# If no movement inputs, clear thrusters
+	if not has_movement_input:
+		ship.computer.emulator.set_memory(REG[0], 0)
+		ship.computer.emulator.set_memory(REG[1], 0)
+		ship.computer.emulator.set_memory(REG[2], 0)
+		ship.computer.emulator.set_memory(REG[3], 0)
 		return
-	# Compute thruster masks from held inputs
+	
+	# Compute thruster masks from pressed actions
 	var masks := _compute_thruster_masks()
-
-	# Write thrusters (zeros if no input)
+	
+	# Write thrusters
 	for i in range(4):
 		ship.computer.emulator.set_memory(REG[i], masks[i])
-
-	# Primary action (continuous)
-	if Input.is_action_pressed("action_primary"):
-		ship.computer.emulator.set_memory(0x020A, 255)
-	elif Input.is_action_just_released("action_primary"):
-		ship.computer.emulator.set_memory(0x020A, 0)
 
 func _compute_thruster_masks() -> Array:
 	var masks := [0, 0, 0, 0]
 
 	# OR all pressed action patterns together
-	for a in actions:
-		if Input.is_action_pressed(a):
-			var pattern: Array = ACTION_MAP[a]
+	for action in actions:
+		if pressed_actions[action]:
+			var pattern: Array = ACTION_MAP[action]
 			for i in range(4):
 				masks[i] |= int(pattern[i])
 
-	# Cancel opposed bits per quad (don’t fire LEFT & RIGHT or TOP & BOTTOM together)
+	# Cancel opposed bits per quad (don't fire LEFT & RIGHT or TOP & BOTTOM together)
 	for i in range(4):
 		var m: Variant = masks[i]
 		if (m & RIGHT) != 0 and (m & LEFT) != 0:
