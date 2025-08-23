@@ -1,87 +1,53 @@
 use godot::prelude::*;
-use mos6502::cpu::CPU;
-use mos6502::instruction::Nmos6502;
-use mos6502::memory::Bus;
-use mos6502::memory::Memory;
-use std::sync::{Arc, Condvar, Mutex};
+use rv6502emu::cpu::Cpu;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use uuid::Uuid;
 
-use lazy_static::lazy_static;
 use std::collections::HashMap;
 
 pub mod asm6502;
 
 #[derive(Clone)]
 struct CPUWrapper {
-    cpu: Arc<Mutex<CPU<Memory, Nmos6502>>>,
-    is_running: Arc<Mutex<bool>>,
-    completion_cvar: Arc<(Mutex<bool>, Condvar)>,
-    start_address: Arc<Mutex<u16>>, // program load address
-    offset_to_line: Arc<Mutex<HashMap<u16, u32>>>, // offset in program -> line
+    cpu: Rc<RefCell<Cpu>>,
+    start_address: Rc<RefCell<u16>>, // program load address
+    offset_to_line: Rc<RefCell<HashMap<u16, u32>>>, // offset in program -> line
 }
 
 impl CPUWrapper {
-    pub fn get_cpu(&self) -> Arc<Mutex<CPU<Memory, Nmos6502>>> {
+    pub fn get_cpu(&self) -> Rc<RefCell<Cpu>> {
         self.cpu.clone()
     }
 
     pub fn run_step(&self) {
-        self.cpu.lock().unwrap().single_step();
-    }
-
-    pub fn run_steps(&self, steps: u32) {
-        let mut guard = self.cpu.lock().unwrap();
-        for _ in 0..steps {
-            guard.single_step();
-        }
+        // Execute a single instruction using run with a limit of 1
+        let _ = self.cpu.borrow_mut().run(None, 1);
     }
 
     pub fn run_steps_async(&self, steps: u32) {
-        let cpu = self.cpu.clone();
-        let is_running = self.is_running.clone();
-        let completion_cvar = self.completion_cvar.clone();
-
-        let (lock, _cvar) = &*completion_cvar;
-        *is_running.lock().unwrap() = true;
-        *lock.lock().unwrap() = true;
-
-        std::thread::spawn(move || {
-            for _ in 0..steps {
-                cpu.lock().unwrap().single_step();
-            }
-
-            let (lock, cvar) = &*completion_cvar;
-            let mut completed = lock.lock().unwrap();
-            *completed = false;
-            *is_running.lock().unwrap() = false;
-            cvar.notify_one();
-        });
+        let _ = self.cpu.borrow_mut().run(None, steps as usize);
     }
 
     pub fn wait_until_done(&self) {
-        let (lock, cvar) = &*self.completion_cvar;
-        let mut completed = lock.lock().unwrap();
-        while *completed {
-            // godot_warn!("Waiting for CPU to finish previous processing... Is the server lagging?");
-            completed = cvar.wait(completed).unwrap();
-        }
+        // No-op (synchronous run)
     }
 
     pub fn set_mapping(&self, start_address: u16, mapping: HashMap<u16, u32>) {
-        *self.start_address.lock().unwrap() = start_address;
-        let mut guard = self.offset_to_line.lock().unwrap();
-        guard.clear();
-        guard.extend(mapping.into_iter());
+        *self.start_address.borrow_mut() = start_address;
+        let mut map = self.offset_to_line.borrow_mut();
+        map.clear();
+        map.extend(mapping.into_iter());
     }
 
     pub fn get_line_number(&self, pc: u16) -> Option<u32> {
-        let start: u16 = *self.start_address.lock().unwrap();
+        let start: u16 = *self.start_address.borrow();
         if pc < start {
             return None;
         }
         let offset = pc.wrapping_sub(start);
-        let map = self.offset_to_line.lock().unwrap();
+        let map = self.offset_to_line.borrow();
         map.get(&offset).copied()
     }
 }
@@ -116,20 +82,22 @@ impl Orchestrator {
     ) -> Uuid {
         let key = uuid::Uuid::new_v4();
 
-        let cpu = Arc::new(Mutex::new(CPU::new(Memory::new(), Nmos6502)));
+        // create a MOS6502 (default) CPU with default bus and 64k memory
+        let mut cpu_obj = Cpu::new_default(None);
+        // load program bytes into memory
+        let mem = cpu_obj.bus.get_memory();
+        for (i, b) in program.iter().enumerate() {
+            let _ = mem.write_byte(start_address as usize + i, *b);
+        }
+        // reset CPU so SP/flags/PC are correctly initialized
+        let _ = cpu_obj.reset(Some(start_address));
 
-        cpu.lock()
-            .unwrap()
-            .memory
-            .set_bytes(start_address, &program);
-        cpu.lock().unwrap().registers.program_counter = start_address;
+        let cpu = Rc::new(RefCell::new(cpu_obj));
 
         let wrapper = CPUWrapper {
             cpu,
-            is_running: Arc::new(Mutex::new(false)),
-            completion_cvar: Arc::new((Mutex::new(false), Condvar::new())),
-            start_address: Arc::new(Mutex::new(start_address)),
-            offset_to_line: Arc::new(Mutex::new(mapping)),
+            start_address: Rc::new(RefCell::new(start_address)),
+            offset_to_line: Rc::new(RefCell::new(mapping)),
         };
 
         self.cpus.insert(key, wrapper);
@@ -138,8 +106,8 @@ impl Orchestrator {
     }
 }
 
-lazy_static! {
-    static ref ORCHESTRATOR: Mutex<Orchestrator> = Mutex::new(Orchestrator::new());
+thread_local! {
+    static ORCHESTRATOR: RefCell<Orchestrator> = RefCell::new(Orchestrator::new());
 }
 
 struct MyExtension;
@@ -159,10 +127,10 @@ struct Emulator6502 {
 impl Emulator6502 {
     #[func]
     pub fn create_cpu(frequency: i32) -> Gd<Self> {
-        let key = ORCHESTRATOR
-            .lock()
-            .unwrap()
-            .create_cpu(0x0600, Vec::new(), HashMap::new());
+        let key = ORCHESTRATOR.with(|o| {
+            o.borrow_mut()
+                .create_cpu(0x0600, Vec::new(), HashMap::new())
+        });
         return Gd::from_object(Emulator6502 {
             key: key.to_string(),
             frequency,
@@ -173,8 +141,7 @@ impl Emulator6502 {
     #[func]
     pub fn load_program(&self, program: Array<u8>, start_address: u16) {
         let key = Uuid::parse_str(&self.key).unwrap();
-        let guard = ORCHESTRATOR.lock().unwrap();
-        let cpuw = guard.get_cpu(key).clone();
+        let cpuw = ORCHESTRATOR.with(|o| o.borrow().get_cpu(key).clone());
         let cpu = cpuw.get_cpu();
 
         // Convert Godot Array<u8> to Vec<u8>
@@ -185,13 +152,14 @@ impl Emulator6502 {
             }
         }
 
-        cpu.lock()
-            .unwrap()
-            .memory
-            .set_bytes(start_address, &vec_program);
-        cpu.lock().unwrap().registers.program_counter = start_address;
+        let mut c = cpu.borrow_mut();
+        let mem = c.bus.get_memory();
+        for (i, b) in vec_program.iter().enumerate() {
+            let _ = mem.write_byte(start_address as usize + i, *b);
+        }
+        let _ = c.reset(Some(start_address));
         // Do not change mapping here; use load_program_from_string to set mapping when assembling
-        *cpuw.start_address.lock().unwrap() = start_address;
+        *cpuw.start_address.borrow_mut() = start_address;
     }
 
     #[func]
@@ -219,8 +187,7 @@ impl Emulator6502 {
 
         // Store mapping in the CPU wrapper for later lookup
         let key = Uuid::parse_str(&self.key).unwrap();
-        let mut orchestrator = ORCHESTRATOR.lock().unwrap();
-        let cpuw = orchestrator.get_cpu(key).clone();
+        let cpuw = ORCHESTRATOR.with(|o| o.borrow().get_cpu(key).clone());
         cpuw.set_mapping(start_address, output.offset_to_line);
     }
 
@@ -234,11 +201,10 @@ impl Emulator6502 {
             _ => {
                 godot_error!("Failed to compile assembly from string");
                 // create empty CPU if failed
-                let key =
-                    ORCHESTRATOR
-                        .lock()
-                        .unwrap()
-                        .create_cpu(0x0600, Vec::new(), HashMap::new());
+                let key = ORCHESTRATOR.with(|o| {
+                    o.borrow_mut()
+                        .create_cpu(0x0600, Vec::new(), HashMap::new())
+                });
                 return Gd::from_object(Emulator6502 {
                     key: key.to_string(),
                     frequency,
@@ -247,11 +213,10 @@ impl Emulator6502 {
             }
         };
 
-        let key =
-            ORCHESTRATOR
-                .lock()
-                .unwrap()
-                .create_cpu(0x0600, output.bytes, output.offset_to_line);
+        let key = ORCHESTRATOR.with(|o| {
+            o.borrow_mut()
+                .create_cpu(0x0600, output.bytes, output.offset_to_line)
+        });
         return Gd::from_object(Emulator6502 {
             key: key.to_string(),
             frequency,
@@ -261,10 +226,7 @@ impl Emulator6502 {
 
     fn cpu(&self) -> CPUWrapper {
         let key = Uuid::parse_str(&self.key).unwrap();
-        let guard = ORCHESTRATOR.lock().unwrap();
-        let cpu = guard.get_cpu(key).clone();
-        drop(guard);
-        cpu
+        ORCHESTRATOR.with(|o| o.borrow().get_cpu(key).clone())
     }
 
     #[func]
@@ -291,10 +253,11 @@ impl Emulator6502 {
     #[func]
     pub fn get_mmio(&self) -> Array<u8> {
         let cpu = self.cpu().get_cpu();
-        let mut memory = cpu.lock().unwrap().memory;
+        let mut c = cpu.borrow_mut();
+        let mem = c.bus.get_memory();
         let mut mmio = Array::new();
         for i in 0x200..0x1200 {
-            mmio.push(memory.get_byte(i));
+            mmio.push(mem.read_byte(i as usize).unwrap_or(0));
         }
         mmio
     }
@@ -302,15 +265,15 @@ impl Emulator6502 {
     #[func]
     pub fn get_cpu_state(&self) -> Dictionary {
         let cpu = self.cpu().get_cpu();
-        let cpu_guard = cpu.lock().unwrap();
+        let cpu_guard = cpu.borrow();
 
         let mut state = Dictionary::new();
-        let _ = state.insert("pc", cpu_guard.registers.program_counter);
-        let _ = state.insert("a", cpu_guard.registers.accumulator);
-        let _ = state.insert("x", cpu_guard.registers.index_x);
-        let _ = state.insert("y", cpu_guard.registers.index_y);
-        let _ = state.insert("p", cpu_guard.registers.status.bits());
-        let _ = state.insert("sp", cpu_guard.registers.stack_pointer.0);
+        let _ = state.insert("pc", cpu_guard.regs.pc);
+        let _ = state.insert("a", cpu_guard.regs.a);
+        let _ = state.insert("x", cpu_guard.regs.x);
+        let _ = state.insert("y", cpu_guard.regs.y);
+        let _ = state.insert("p", cpu_guard.regs.p.bits());
+        let _ = state.insert("sp", cpu_guard.regs.s as u16);
 
         state
     }
@@ -318,11 +281,15 @@ impl Emulator6502 {
     #[func]
     pub fn read_page(&self, page: u8) -> Array<u8> {
         let cpu = self.cpu().get_cpu();
-        let mut memory = cpu.lock().unwrap().memory;
+        let mut c = cpu.borrow_mut();
+        let mem = c.bus.get_memory();
         let mut result = Array::new();
         let page_address = (page as u16 * 256) as u16;
         for i in 0..256 {
-            result.push(memory.get_byte(page_address + i as u16));
+            result.push(
+                mem.read_byte((page_address + i as u16) as usize)
+                    .unwrap_or(0),
+            );
         }
         result
     }
@@ -330,22 +297,24 @@ impl Emulator6502 {
     #[func]
     pub fn read_memory(&self, address: u16) -> u8 {
         let cpu = self.cpu().get_cpu();
-        let mut cpu_guard = cpu.lock().unwrap();
-        cpu_guard.memory.get_byte(address)
+        let mut c = cpu.borrow_mut();
+        let mem = c.bus.get_memory();
+        mem.read_byte(address as usize).unwrap_or(0)
     }
 
     #[func]
     pub fn set_memory(&self, address: u16, value: u8) {
         let cpu = self.cpu().get_cpu();
-        let mut cpu_guard = cpu.lock().unwrap();
-        cpu_guard.memory.set_byte(address, value);
+        let c = &mut *cpu.borrow_mut();
+        let mem = c.bus.get_memory();
+        let _ = mem.write_byte(address as usize, value);
     }
 
     #[func]
     pub fn set_program_counter(&self, address: u16) {
         let cpu = self.cpu().get_cpu();
-        let mut cpu_guard = cpu.lock().unwrap();
-        cpu_guard.registers.program_counter = address;
+        let mut cpu_guard = cpu.borrow_mut();
+        cpu_guard.regs.pc = address;
     }
 
     #[func]

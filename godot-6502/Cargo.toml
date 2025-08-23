@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 lazy_static = "1.5.0"
-mos6502 = "0.6.1"
 spin_sleep = "1.2.1"
 clap = { version = "4.5.16", features = ["derive"] }
 log = "0.4.22"
@@ -13,6 +12,7 @@ simplelog = "^0.12.2"
 strum = "0.26.3"
 strum_macros = "0.26.4"
 thiserror = "1.0.63"
+rv6502emu = { git = "https://github.com/valerino/rv6502emu", version = "0.1.0" }
 
 [lib]
 crate-type = ["cdylib"]  # Compile this crate to a dynamic C library.
