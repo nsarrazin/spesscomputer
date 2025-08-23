@@ -1,8 +1,7 @@
-[gd_scene load_steps=16 format=3 uid="uid://d1he7h6c2ifoi"]
+[gd_scene load_steps=15 format=3 uid="uid://d1he7h6c2ifoi"]
 
 [ext_resource type="Script" uid="uid://ox7krkkqatqq" path="res://scenes/Ship/Ship.gd" id="1_mp2ty"]
 [ext_resource type="ArrayMesh" uid="uid://c7vw7twlq30xh" path="res://art/models/Lander/BodyCube.res" id="2_6y3jr"]
-[ext_resource type="Resource" uid="uid://drkgmka06jh56" path="res://code/simple_code.tres" id="2_rj6ok"]
 [ext_resource type="ArrayMesh" uid="uid://cti0c7x2cat5j" path="res://art/models/Lander/LandingLeg.res" id="3_tawix"]
 [ext_resource type="PackedScene" uid="uid://dbxok8t5f1pwi" path="res://scenes/Ship/Parts/MainEngine/MainEngine.tscn" id="4_te2uv"]
 [ext_resource type="PackedScene" uid="uid://ben4n8f4rggne" path="res://scenes/Ship/Parts/Antenna/Antenna.tscn" id="4_w40mm"]
@@ -31,7 +30,6 @@ transform = Transform3D(0.00707107, 0, 0.00707107, 0, 0.01, 0, -0.00707107, 0, 0
 mass = 50.0
 gravity_scale = 0.0
 script = ExtResource("1_mp2ty")
-source_code = ExtResource("2_rj6ok")
 
 [node name="BodyCube" type="MeshInstance3D" parent="."]
 mesh = ExtResource("2_6y3jr")

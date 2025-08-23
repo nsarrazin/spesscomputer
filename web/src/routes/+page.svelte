@@ -5,17 +5,17 @@
 	import FrequencySlider from '$lib/components/FrequencySlider.svelte';
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
+	import { appState } from '$lib/AppState.svelte';
 
 	// Svelte 5 runes (state + effects)
-	let activeTab = $state('tab1');
+	let activeTab = $state('tab1'); // For mobile tabs
 	let isRespawning = $state(false);
 	let godotEngineComponent: GodotEngine;
 
 	const TAB_KEY = 'retro.activeTab';
-
 	let engine: any = $state(null);
 
-	// Persist/restore active tab
+	// Persist/restore active tab (mobile only)
 	onMount(() => {
 		try {
 			const saved = localStorage.getItem(TAB_KEY);
@@ -33,7 +33,7 @@
 
 		try {
 			isRespawning = true;
-			await WebHelper.respawnShipWithCode(source);
+			await WebHelper.respawnShipWithCode(appState.code);
 		} catch (error) {
 			console.error('Failed to respawn ship:', error);
 		} finally {
@@ -48,7 +48,7 @@
 	});
 
 	function onTabsKey(e: KeyboardEvent) {
-		const ids = ['tab1', 'tab2', 'tab3'];
+		const ids = ['tab1', 'tab2'];
 		const i = ids.indexOf(activeTab);
 		if (e.key === 'ArrowRight') {
 			activeTab = ids[(i + 1) % ids.length];
@@ -67,43 +67,6 @@
 			e.preventDefault();
 		}
 	}
-
-	let source = $state(`THRUSTER_1 = $020C
-FIRE_UP = 8
-FIRE_DOWN = 4
-
-.org $0600
-
-main_loop:
-	LDA #FIRE_UP
-	STA THRUSTER_1
-	JSR delay
-	
-	LDA #0
-	STA THRUSTER_1
-	JSR delay
-
-	LDA #FIRE_DOWN
-	STA THRUSTER_1
-	JSR delay
-
-	LDA #0
-	STA THRUSTER_1
-	JSR delay
-
-	JMP main_loop
-
-
-delay:
-	LDX #5
-inner_loop:
-	NOP
-	DEX
-	BNE inner_loop
-	RTS
-	`);
-
-
 </script>
 
 <svelte:head>
@@ -113,9 +76,9 @@ inner_loop:
 	<link rel="manifest" href="SpessComputer.manifest.json" />
 </svelte:head>
 
-<main class="flex flex-col lg:flex-row gap-4 p-4">
-	<!-- VISUAL LINK: Top on mobile, left on desktop -->
-	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)] w-full lg:w-auto order-first flex-shrink-0 lg:aspect-[4/3] lg:h-[calc(100vh-2rem)] lg:max-w-[60vw]" style="height: 50vh;">
+<main class="flex flex-col lg:grid lg:grid-cols-[1fr_1fr] lg:grid-rows-[1fr_auto] gap-4 p-4 lg:h-[calc(100vh-2rem)]">
+	<!-- VISUAL LINK: Top on mobile, top-left on desktop -->
+	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)] w-full order-first lg:row-span-1" style="height: 50vh; min-height: 300px;">
 		<div
 			class="flex items-center justify-between border-b border-[#ffb86b]/30 px-3 py-2 text-xs tracking-[0.2em]"
 		>
@@ -134,8 +97,78 @@ inner_loop:
 		{@render Corner('br')}
 	</section>
 
-	<!-- CONTROL DECK: Bottom on mobile, right on desktop -->
-	<section class="relative flex-1 bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)] order-last">
+	<!-- CODE EDITOR: Desktop only, full right side -->
+	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)] hidden lg:block lg:row-span-2 lg:col-start-2">
+		<div
+			class="flex items-center justify-between border-b border-[#ffb86b]/30 px-3 py-2 text-xs tracking-[0.2em]"
+		>
+			<span>CODE EDITOR</span>
+		</div>
+
+		<!-- Code Editor Panel -->
+		<div
+			class="lg:h-[calc(100%-2.75rem)] bg-[#131318] p-2 sm:p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_0_1px_rgba(255,184,107,0.08)]"
+		>
+			<div class="flex h-full min-h-0 flex-col gap-3">
+				<div class="flex-1 overflow-y-auto">
+					<Asm6502Editor bind:value={appState.code} className="h-full" />
+				</div>
+				<button
+					onclick={() => handleRespawnShip()}
+					class="transform border border-[#ffb86b]/40 bg-[#0f0f12] px-3 sm:px-4 py-2 
+					       text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.18em]
+					       text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] transition hover:text-[#ffb86b]
+					       hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+					disabled={isRespawning}
+					type="button"
+				>
+					{isRespawning ? 'RESPAWNING...' : 'RESPAWN SHIP WITH CODE'}
+				</button>
+				{#if engine}
+					<div class="mt-3">
+						<FrequencySlider />
+					</div>
+				{/if}
+			</div>
+		</div>
+		{@render Corner('tl')}
+		{@render Corner('tr')}
+		{@render Corner('bl')}
+		{@render Corner('br')}
+	</section>
+
+	<!-- MEMORY VIEWER: Desktop only, bottom-left -->
+	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)] hidden lg:block lg:row-start-2 lg:col-start-1">
+		<div
+			class="flex items-center justify-between border-b border-[#ffb86b]/30 px-3 py-2 text-xs tracking-[0.2em]"
+		>
+			<span>MEMORY VIEWER</span>
+		</div>
+
+		<!-- Memory Viewer Panel -->
+		<div
+			class="lg:h-[calc(100%-2.75rem)] bg-[#131318] p-2 sm:p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_0_1px_rgba(255,184,107,0.08)]"
+		>
+			{#if engine}
+				<div class="h-full flex flex-col">
+					<div class="flex-1 overflow-y-auto">
+						<MemoryViewer />
+					</div>
+				</div>
+			{:else}
+				<div class="h-full flex items-center justify-center text-[#ffb86b]/60 text-sm">
+					<span>Engine not loaded</span>
+				</div>
+			{/if}
+		</div>
+		{@render Corner('tl')}
+		{@render Corner('tr')}
+		{@render Corner('bl')}
+		{@render Corner('br')}
+	</section>
+
+	<!-- MOBILE TABBED INTERFACE: Mobile only -->
+	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)] lg:hidden order-last">
 		<div
 			class="flex items-center justify-between border-b border-[#ffb86b]/30 px-3 py-2 text-xs tracking-[0.2em]"
 		>
@@ -156,7 +189,7 @@ inner_loop:
 
 		<!-- Panels -->
 		<div
-			class="min-h-[80vh] lg:h-[calc(60vh-6rem)] xl:h-[calc(78vh-6rem)] bg-[#131318] p-2 sm:p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_0_1px_rgba(255,184,107,0.08)]"
+			class="min-h-[80vh] bg-[#131318] p-2 sm:p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_0_1px_rgba(255,184,107,0.08)]"
 		>
 			{#if activeTab === 'tab1'}
 				<div
@@ -167,20 +200,20 @@ inner_loop:
 					class="flex h-full min-h-0 flex-col gap-3"
 					in:fade={{ duration: 150 }}
 				>
-					<div class="flex-1 min-h-[60vh] lg:min-h-0 overflow-y-auto">
-						<Asm6502Editor bind:value={source} className="h-full" />
+					<div class="flex-1 min-h-[60vh] overflow-y-auto">
+						<Asm6502Editor bind:value={appState.code} className="h-full" />
 					</div>
-						<button
+					<button
 						onclick={() => handleRespawnShip()}
 						class="transform border border-[#ffb86b]/40 bg-[#0f0f12] px-3 sm:px-4 py-2 
 						       text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.18em]
 						       text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] transition hover:text-[#ffb86b]
 						       hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-							disabled={isRespawning}
+						disabled={isRespawning}
 						type="button"
-						>
+					>
 						{isRespawning ? 'RESPAWNING...' : 'RESPAWN SHIP WITH CODE'}
-						</button>
+					</button>
 					{#if engine}
 						<div class="mt-3">
 							<FrequencySlider />
@@ -203,11 +236,15 @@ inner_loop:
 					in:fade={{ duration: 150 }}
 				>
 					{#if engine}
-						<div class="min-h-[60vh] lg:min-h-0 flex-1 overflow-y-auto">
+						<div class="min-h-[60vh] flex-1 overflow-y-auto">
 							<MemoryViewer />
 						</div>
 						<div class="mt-3">
 							<FrequencySlider />
+						</div>
+					{:else}
+						<div class="h-full flex items-center justify-center text-[#ffb86b]/60 text-sm">
+							<span>Engine not loaded</span>
 						</div>
 					{/if}
 				</div>
@@ -220,16 +257,19 @@ inner_loop:
 					hidden
 				>
 					{#if engine}
-						<div class="min-h-[60vh] lg:min-h-0 flex-1 overflow-y-auto" style="display: none;">
+						<div class="min-h-[60vh] flex-1 overflow-y-auto" style="display: none;">
 							<MemoryViewer />
 						</div>
 						<div class="mt-3" style="display: none;">
 							<FrequencySlider />
 						</div>
+					{:else}
+						<div class="h-full flex items-center justify-center text-[#ffb86b]/60 text-sm" style="display: none;">
+							<span>Engine not loaded</span>
+						</div>
 					{/if}
 				</div>
 			{/if}
-
 		</div>
 		{@render Corner('tl')}
 		{@render Corner('tr')}

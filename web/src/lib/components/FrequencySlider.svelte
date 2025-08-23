@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { appState } from '$lib/AppState.svelte';
 
 	// Props
 	let { initialFrequency = 10 }: { initialFrequency?: number } = $props();
 
-	// Frequency control state and helpers
-	let frequency = $state(initialFrequency);
+	// Slider state for UI (derived from AppState frequency)
 	let sliderValue = $state(0);
-	let isPaused = $state(false);
 
 	async function handlePause() {
 		try {
 			await WebHelper.pause();
-			isPaused = true;
+			appState.isPaused = true;
 		} catch (err) {
 			console.error('Failed to pause', err);
 		}
@@ -21,7 +20,7 @@
 	async function handleResume() {
 		try {
 			await WebHelper.resume();
-			isPaused = false;
+			appState.isPaused = false;
 		} catch (err) {
 			console.error('Failed to resume', err);
 		}
@@ -80,7 +79,10 @@
 		if (Math.abs(targetSlider - sliderValue) <= 6) {
 			sliderValue = targetSlider;
 		}
-		frequency = f;
+		
+		// Update AppState frequency
+		appState.setFrequency(f);
+		
 		// Update emulator frequency continuously during drag
 		try {
 			// Do not await to keep UI responsive
@@ -90,26 +92,24 @@
 		}
 	}
 
-	// Initialize slider position based on frequency
+	// Initialize slider position based on initial frequency or AppState
 	onMount(() => {
-		sliderValue = freqToSlider(frequency);
+		if (appState.frequency !== initialFrequency) {
+			appState.setFrequency(initialFrequency);
+		}
+		sliderValue = freqToSlider(appState.frequency);
 	});
 
 	$effect(() => {
-		// Keep slider position in sync if frequency changes from elsewhere
-		sliderValue = freqToSlider(frequency);
+		// Keep slider position in sync with AppState frequency changes
+		sliderValue = freqToSlider(appState.frequency);
 	});
-
-	// Expose current frequency for parent component
-	export function getCurrentFrequency() {
-		return frequency;
-	}
 </script>
 
 <div class="grid gap-2">
 	<div class="mb-1 flex items-center justify-between">
 		<div class="flex gap-2">
-			{#if !isPaused}
+			{#if !appState.isPaused}
 				<button
 					onclick={handlePause}
 					class="border border-[#ffb86b]/40 bg-[#0f0f12] px-2 py-1 text-[11px] tracking-[0.18em] text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] hover:text-[#ffb86b]"
@@ -148,7 +148,7 @@
 	</div>
 	<div class="flex items-center justify-between text-xs tracking-[0.15em] text-[#ffb86b]/80">
 		<span>CPU FREQUENCY</span>
-		<span class="font-mono">{formatFrequency(frequency)}</span>
+		<span class="font-mono">{formatFrequency(appState.frequency)}</span>
 	</div>
 	<input
 		type="range"

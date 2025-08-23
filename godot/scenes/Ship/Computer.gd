@@ -3,7 +3,7 @@ extends Node3D
 
 var shipComponents: Array = []
 var emulator: Emulator6502
-
+var program: String = ""
 var pause: bool = false
 
 func _init() -> void:
@@ -23,7 +23,11 @@ func _process(delta: float) -> void:
 
 	if !pause:
 		emulator.execute_cycles_for_duration(delta)
-		
+
+func load_program_from_string(program_string: String) -> void:
+	program = program_string
+	emulator.load_program_from_string(program_string, 0x600)
+
 func pause_emulator() -> void:
 	pause = true
 

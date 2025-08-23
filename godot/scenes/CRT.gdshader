@@ -45,7 +45,7 @@ float FIXF(float c) { return max(abs(c), 1e-5); }
 vec4  FIX4(vec4 c)  { return max(abs(c), vec4(1e-5)); }
 
 // 480i uses 59.94 Hz field rate (29.97 fps x 2 fields)
-float frame_mod2() { 
+float frame_mod2() {
     if (enable_480i) {
         return floor(mod(TIME * 59.94 + interlace_offset, 2.0));
     } else {
@@ -144,7 +144,7 @@ vec3 bloom_apply(vec2 uv, vec2 screen_px, float intensity, float radius_px, floa
 void fragment() {
     // Live framebuffer sizes
     vec2 texture_size = vec2(textureSize(screen_tex, 0));
-    
+
     // For 480i clamping: render as if we have low resolution but fill the full canvas
     vec2 video_size = clamp_resolution ? vec2(target_width, target_height) : texture_size;
     vec2 screen_px = 1.0 / texture_size;  // Keep original for bloom calculations

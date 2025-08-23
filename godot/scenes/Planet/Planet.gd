@@ -517,14 +517,12 @@ func _update_atmosphere_params() -> void:
 	if atmosphere_material == null:
 		return
 	var shell_height: float = max(1.0, radius * atmosphere_height_scale)
-	var atm_radius: float = radius + shell_height
 	atmosphere_material.set_shader_parameter("planet_radius", radius)
 	atmosphere_material.set_shader_parameter("atmosphere_height", shell_height)
-	atmosphere_material.set_shader_parameter("intensity_rayleigh", atmosphere_intensity)
-	atmosphere_material.set_shader_parameter("intensity_mie", atmosphere_mie_intensity)
-	atmosphere_material.set_shader_parameter("g", clampf(atmosphere_g, -0.99, 0.99))
-	atmosphere_material.set_shader_parameter("rayleigh_color", atmosphere_color)
-	atmosphere_material.set_shader_parameter("mie_color", atmosphere_mie_color)
+	atmosphere_material.set_shader_parameter("intensity", atmosphere_intensity)
+	atmosphere_material.set_shader_parameter("atmosphere_color", atmosphere_color)
+	atmosphere_material.set_shader_parameter("density_falloff", 0.8)
+	atmosphere_material.set_shader_parameter("horizon_power", 2.0)
 	# Sun direction in world
 	var light := _get_directional_light()
 	var sun_dir_world: Vector3 = Vector3(0, -1, 0)
@@ -534,8 +532,6 @@ func _update_atmosphere_params() -> void:
 	# Convert to planet local/object space
 	var sun_dir_obj: Vector3 = (global_transform.basis.inverse() * sun_dir_world).normalized()
 	atmosphere_material.set_shader_parameter("sun_dir_object", sun_dir_obj)
-	# Visual tweaks
-	atmosphere_material.set_shader_parameter("outer_radius", atm_radius)
 	# Camera position in planet object space
 	var cam := get_viewport().get_camera_3d()
 	if cam:
@@ -547,11 +543,8 @@ func _update_surface_atmo_params() -> void:
 	if smat == null:
 		return
 	smat.set_shader_parameter("atmo_height", radius * atmosphere_height_scale)
-	smat.set_shader_parameter("atmo_intensity_rayleigh", atmosphere_intensity)
-	smat.set_shader_parameter("atmo_intensity_mie", atmosphere_mie_intensity)
-	smat.set_shader_parameter("atmo_g", clampf(atmosphere_g, -0.99, 0.99))
-	smat.set_shader_parameter("atmo_rayleigh_color", atmosphere_color)
-	smat.set_shader_parameter("atmo_mie_color", atmosphere_mie_color)
+	smat.set_shader_parameter("atmo_intensity", atmosphere_intensity * 0.4)
+	smat.set_shader_parameter("atmo_color", atmosphere_color)
 	# Sun direction
 	var light := _get_directional_light()
 	var sun_dir_world: Vector3 = Vector3(0, -1, 0)

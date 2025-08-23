@@ -7,10 +7,9 @@ const IMU = preload("res://scenes/Ship/ComputerComponents/IMU/IMU.gd")
 const StarTracker = preload("res://scenes/Ship/ComputerComponents/StarTracker/StarTracker.gd")
 
 @export var planet_node: Node3D = null
-@export var source_code: SourceCode = null
 # Crash parameters
 @export var crash_vertical_speed_threshold: float = 30.0
-@export var crash_altitude_margin: float = 50.0
+@export var crash_altitude_margin: float = 1.0
 
 var computer: Computer = null
 var _has_exploded: bool = false
@@ -30,9 +29,6 @@ func _ready() -> void:
 	center_of_mass = Vector3.ZERO
 	
 	set_initial_speed()
-
-	if source_code:
-		computer.emulator.load_program_from_string(source_code.value, 0x600)
 	
 	for address in range(0x200, 0x300):
 		computer.emulator.set_memory(address, 0)

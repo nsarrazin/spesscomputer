@@ -60,7 +60,7 @@ func spawn_ship(source_code: String = "") -> void:
 	ship.set_initial_speed()
 
 	if ship.computer && source_code:
-		ship.computer.emulator.load_program_from_string(source_code, 0x600)
+		ship.computer.load_program_from_string(source_code)
 
 	for address in range(0x200, 0x300):
 		ship.computer.emulator.set_memory(address, 0)
@@ -155,6 +155,14 @@ func js_resume():
 func js_step():
 	active_ship.computer.step()
 	return true
+
+func js_getState():
+	return {
+		"code": active_ship.computer.program,
+		"isPaused": active_ship.computer.pause,
+		"frequency": active_ship.computer.emulator.frequency,
+		"shipIdx": ship_idx
+	} as Dictionary
 
 func js_getLineNumber(pc = -1):
 	if pc < 0:

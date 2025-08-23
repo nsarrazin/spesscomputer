@@ -59,6 +59,12 @@ declare global {
 		static async resume(): Promise<void>
 		static async step(): Promise<void>
 		static async getLineNumber(pc?: number): Promise<number>;
+		static async getState(): Promise<{
+			code: string;
+			isPaused: boolean;
+			frequency: number;
+			shipIdx: number;
+		}>;
 	}
 
 	declare const WebHelper: typeof WebHelper;
