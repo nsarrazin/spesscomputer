@@ -113,9 +113,9 @@ inner_loop:
 	<link rel="manifest" href="SpessComputer.manifest.json" />
 </svelte:head>
 
-<main class="flex gap-4 p-4">
-	<!-- LEFT: Canvas panel with 4:3 aspect ratio -->
-	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)]" style="width: min(calc((100vh - 2rem) * 4/3), 60vw); height: min(calc(100vh - 2rem), calc(60vw * 3/4));">
+<main class="flex flex-col lg:flex-row gap-4 p-4">
+	<!-- VISUAL LINK: Top on mobile, left on desktop -->
+	<section class="relative bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)] w-full lg:w-auto order-first flex-shrink-0 lg:aspect-[4/3] lg:h-[calc(100vh-2rem)] lg:max-w-[60vw]" style="height: 50vh;">
 		<div
 			class="flex items-center justify-between border-b border-[#ffb86b]/30 px-3 py-2 text-xs tracking-[0.2em]"
 		>
@@ -134,8 +134,8 @@ inner_loop:
 		{@render Corner('br')}
 	</section>
 
-	<!-- RIGHT: Tabs panel -->
-	<section class="relative flex-1 bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)]">
+	<!-- CONTROL DECK: Bottom on mobile, right on desktop -->
+	<section class="relative flex-1 bg-[#101014] shadow-[inset_0_0_0_2px_rgba(255,184,107,0.15)] order-last">
 		<div
 			class="flex items-center justify-between border-b border-[#ffb86b]/30 px-3 py-2 text-xs tracking-[0.2em]"
 		>
@@ -144,7 +144,7 @@ inner_loop:
 
 		<!-- Tabs -->
 		<div
-			class="flex gap-2 border-b border-[#ffb86b]/20 bg-[#0f0f12] px-3 py-2"
+			class="flex gap-1 sm:gap-2 border-b border-[#ffb86b]/20 bg-[#0f0f12] px-2 sm:px-3 py-2"
 			role="tablist"
 			aria-label="Controls"
 			onkeydown={onTabsKey}
@@ -156,7 +156,7 @@ inner_loop:
 
 		<!-- Panels -->
 		<div
-			class="h-[calc(60vh-6rem)] bg-[#131318] p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_0_1px_rgba(255,184,107,0.08)] lg:h-[calc(78vh-6rem)]"
+			class="min-h-[80vh] lg:h-[calc(60vh-6rem)] xl:h-[calc(78vh-6rem)] bg-[#131318] p-2 sm:p-3 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.15),0_0_0_0_1px_rgba(255,184,107,0.08)]"
 		>
 			{#if activeTab === 'tab1'}
 				<div
@@ -167,12 +167,13 @@ inner_loop:
 					class="flex h-full min-h-0 flex-col gap-3"
 					in:fade={{ duration: 150 }}
 				>
-					<div class="flex-1 min-h-0 overflow-y-auto">
+					<div class="flex-1 min-h-[60vh] lg:min-h-0 overflow-y-auto">
 						<Asm6502Editor bind:value={source} className="h-full" />
 					</div>
 						<button
 						onclick={() => handleRespawnShip()}
-						class="transform border border-[#ffb86b]/40 bg-[#0f0f12] px-4 py-2 tracking-[0.18em]
+						class="transform border border-[#ffb86b]/40 bg-[#0f0f12] px-3 sm:px-4 py-2 
+						       text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.18em]
 						       text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] transition hover:text-[#ffb86b]
 						       hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
 							disabled={isRespawning}
@@ -202,7 +203,7 @@ inner_loop:
 					in:fade={{ duration: 150 }}
 				>
 					{#if engine}
-						<div class="min-h-0 flex-1">
+						<div class="min-h-[60vh] lg:min-h-0 flex-1 overflow-y-auto">
 							<MemoryViewer />
 						</div>
 						<div class="mt-3">
@@ -219,7 +220,7 @@ inner_loop:
 					hidden
 				>
 					{#if engine}
-						<div class="min-h-0 flex-1" style="display: none;">
+						<div class="min-h-[60vh] lg:min-h-0 flex-1 overflow-y-auto" style="display: none;">
 							<MemoryViewer />
 						</div>
 						<div class="mt-3" style="display: none;">
@@ -260,9 +261,10 @@ inner_loop:
 		aria-controls={`tab-panel-${id.slice(-1)}`}
 		tabindex={activeTab === id ? 0 : -1}
 		onclick={() => (activeTab = id)}
-		class="transform border border-[#ffb86b]/40 bg-[#0f0f12] px-3 py-2 tracking-[0.18em]
+		class="transform border border-[#ffb86b]/40 bg-[#0f0f12] px-2 sm:px-3 py-1.5 sm:py-2 
+		       text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.18em] flex-1 sm:flex-none
            text-[#ffb86b]/80 shadow-[inset_0_0_0_1px_rgba(255,184,107,0.35)] transition hover:brightness-110
-           active:scale-[0.98] data-[active=true]:text-[#ffb86b]"
+           active:scale-[0.98] data-[active=true]:text-[#ffb86b] whitespace-nowrap"
 		data-active={activeTab === id}
 	>
 		{label}

@@ -108,14 +108,37 @@
 
 		const rect = wrapEl.getBoundingClientRect();
 		const dpr = window.devicePixelRatio || 1;
+		
+		// Target aspect ratio for 480i (4:3)
+		const targetAspectRatio = 4 / 3;
+		const containerAspectRatio = rect.width / rect.height;
+		
+		let canvasWidth, canvasHeight;
+		
+		// Calculate canvas size to fill container while maintaining 4:3 aspect ratio
+		// This works like CSS object-fit: cover - fills container, crops excess
+		if (containerAspectRatio > targetAspectRatio) {
+			// Container is wider than 4:3, so fit to width and crop height
+			canvasWidth = rect.width;
+			canvasHeight = rect.width / targetAspectRatio;
+		} else {
+			// Container is taller than 4:3, so fit to height and crop width  
+			canvasHeight = rect.height;
+			canvasWidth = rect.height * targetAspectRatio;
+		}
 
 		// Set the display size (CSS pixels)
-		canvasEl.style.width = rect.width + 'px';
-		canvasEl.style.height = rect.height + 'px';
+		canvasEl.style.width = canvasWidth + 'px';
+		canvasEl.style.height = canvasHeight + 'px';
+		
+		// Center the canvas in the container
+		canvasEl.style.left = '50%';
+		canvasEl.style.top = '50%';
+		canvasEl.style.transform = 'translate(-50%, -50%)';
 
 		// Set the actual size in memory (scaled for high-DPI displays)
-		canvasEl.width = rect.width * dpr;
-		canvasEl.height = rect.height * dpr;
+		canvasEl.width = canvasWidth * dpr;
+		canvasEl.height = canvasHeight * dpr;
 
 		// Notify the Godot engine if it's running
 		if (engine && engine.requestDisplayRefresh) {
@@ -241,7 +264,7 @@
 	}
 </script>
 
-<div class="relative h-full w-full" bind:this={wrapEl}>
+<div class="relative h-full w-full bg-[#131318] overflow-hidden" bind:this={wrapEl}>
 	<canvas
 		id="canvas"
 		class="absolute inset-0 block"
@@ -292,5 +315,6 @@
 		display: block;
 		outline: none;
 		background: transparent;
+		position: absolute;
 	}
 </style> 

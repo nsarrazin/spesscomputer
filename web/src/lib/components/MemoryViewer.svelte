@@ -114,7 +114,7 @@
 	}
 </script>
 
-<div class="flex h-full flex-col gap-3 font-mono text-sm">
+<div class="flex h-full flex-col gap-3 font-mono text-sm max-w-2xl mx-auto">
 	<!-- Registers Display -->
 	<div class="flex flex-col gap-2">
 		<div class="border-b border-[#ffb86b]/20 pb-1 text-xs tracking-[0.2em] text-[#ffb86b]/80">
@@ -211,10 +211,10 @@
 				<div
 					class="grid-cols-17 sticky top-0 mb-1 grid gap-1 bg-[#131318] text-xs text-[#ffb86b]/40"
 				>
-					<div></div>
-					<!-- Empty cell for row headers -->
+					<div class="text-right"></div>
+					<!-- Empty cell for row headers, aligned right like row headers -->
 					{#each Array(16) as _, i}
-						<div class="text-center">{formatHex(i, 1)}</div>
+						<div class="text-center p-1">{formatHex(i, 1)}</div>
 					{/each}
 				</div>
 
@@ -222,7 +222,7 @@
 				{#each Array(16) as _, row}
 					<div class="grid-cols-17 mb-1 grid gap-1 text-xs">
 						<!-- Row header -->
-						<div class="text-right text-[#ffb86b]/40">
+						<div class="text-right text-[#ffb86b]/40 p-1">
 							{formatHex(currentPage * 16 + row, 1)}0:
 						</div>
 
@@ -257,6 +257,6 @@
 <style>
 	/* Custom grid for 16 columns + 1 header column */
 	.grid-cols-17 {
-		grid-template-columns: auto repeat(16, 1fr);
+		grid-template-columns: 3ch repeat(16, minmax(2ch, 1fr));
 	}
 </style>

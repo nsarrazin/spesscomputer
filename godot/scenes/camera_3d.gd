@@ -7,13 +7,19 @@ var _target_node: Node3D = null
 		_set_target(value)
 	get:
 		return _get_target()
-@export var orbit_radius: float = 20.0
+@export var orbit_radius: float = 5.0
 @export var orbit_sensitivity: float = 0.01
 @export var zoom_sensitivity: float = 0.1
 @export var min_zoom: float = 5.0
 @export var max_zoom: float = 50.0
+@export var pinch_zoom_sensitivity: float = 2.0
 
 var orbit_angles = Vector2.ZERO # Stores pitch and yaw angles
+
+# Touch tracking for pinch gestures
+var touch_points = {}
+var initial_pinch_distance = 0.0
+var is_pinching = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -40,6 +46,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not target_node:
 		return
 		
+	# Handle mouse controls
 	if event is InputEventMouseMotion and event.button_mask == MOUSE_BUTTON_LEFT:
 		# Update orbit angles based on mouse movement
 		orbit_angles.x += event.relative.y * orbit_sensitivity # Reversed y movement
@@ -60,11 +67,69 @@ func _unhandled_input(event: InputEvent) -> void:
 			eff = min(zoom_sensitivity, 0.01)
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			# Zoom in multiplicatively and clamp to target-aware limits
-			orbit_radius = clamp(orbit_radius * (1.0 - eff), limits.x, limits.y)
+			orbit_radius = clamp(orbit_radius / (1.0 + eff), limits.x, limits.y)
 			_update_camera_position()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			# Zoom out multiplicatively and clamp to target-aware limits
 			orbit_radius = clamp(orbit_radius * (1.0 + eff), limits.x, limits.y)
+			_update_camera_position()
+	
+	# Handle touch controls
+	elif event is InputEventScreenTouch:
+		if event.pressed:
+			# Touch down - add to tracking
+			touch_points[event.index] = event.position
+			
+			# Check if we now have two touches for pinching
+			if touch_points.size() == 2:
+				is_pinching = true
+				var positions = touch_points.values()
+				initial_pinch_distance = positions[0].distance_to(positions[1])
+		else:
+			# Touch up - remove from tracking
+			touch_points.erase(event.index)
+			
+			# Stop pinching if we don't have two touches
+			if touch_points.size() < 2:
+				is_pinching = false
+				initial_pinch_distance = 0.0
+	
+	elif event is InputEventScreenDrag:
+		# Update touch position
+		if event.index in touch_points:
+			touch_points[event.index] = event.position
+		
+		# Handle pinch gesture
+		if is_pinching and touch_points.size() == 2:
+			var positions = touch_points.values()
+			var current_distance = positions[0].distance_to(positions[1])
+			
+			if initial_pinch_distance > 0:
+				var zoom_factor = current_distance / initial_pinch_distance
+				var limits := _get_zoom_limits()
+				
+				# Adjust sensitivity based on target type
+				var eff := pinch_zoom_sensitivity * 0.01 # Scale down for smoother control
+				if target_node and "radius" in target_node:
+					eff = min(eff, 0.005) # Even smaller for planets
+				
+				# Apply zoom based on pinch distance change
+				var new_radius = orbit_radius / (1.0 + (zoom_factor - 1.0) * eff)
+				orbit_radius = clamp(new_radius, limits.x, limits.y)
+				
+				_update_camera_position()
+			
+			# Update for next frame
+			initial_pinch_distance = current_distance
+		
+		# Single finger drag for orbit controls (only if not pinching)
+		elif not is_pinching and event.index == 0:
+			orbit_angles.x += event.relative.y * orbit_sensitivity * 2.0 # Slightly more sensitive for touch
+			orbit_angles.y -= event.relative.x * orbit_sensitivity * 2.0
+			
+			# Clamp vertical rotation to avoid flipping
+			orbit_angles.x = clamp(orbit_angles.x, -PI / 2, PI / 2)
+			
 			_update_camera_position()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
