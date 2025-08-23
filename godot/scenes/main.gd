@@ -46,7 +46,7 @@ func spawn_ship(source_code: String = "") -> void:
 	add_child(ship)
 	ship.planet_node = planet
 
-	var radius = randf_range(planet.radius * 1.2, planet.radius * 2) # Slightly away from planet surface (200-300km)
+	var radius = randf_range(planet.radius * 1.2, planet.radius * 1.5) # Slightly away from planet surface (200-300km)
 	# Use spherical coordinates: convert to Cartesian
 	var theta = randf() * PI # Polar angle (0 to PI)
 	var phi = randf() * TAU # Azimuthal angle (0 to 2*PI)
@@ -61,6 +61,9 @@ func spawn_ship(source_code: String = "") -> void:
 
 	if ship.computer && source_code:
 		ship.computer.emulator.load_program_from_string(source_code, 0x600)
+
+	for address in range(0x200, 0x300):
+		ship.computer.emulator.set_memory(address, 0)
 
 	ships.append(ship)
 
