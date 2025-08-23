@@ -20,13 +20,19 @@ uniform float DOTMASK          : hint_range(0.0, 0.3) = 0.3;
 uniform float SHARPER          : hint_range(1.0, 3.0)   = 1.0;
 uniform float scanline_weight  : hint_range(0.05, 1.0)  = 0.5;
 uniform float lum              : hint_range(0.0, 1.0)   = 0.2;
-uniform float interlace_toggle : hint_range(1.0, 5.0)   = 1.0;
 
-// Optional stylistic Y scale for beam geometry (set 0.75 for “classic” look)
+// 480i specific parameters
+uniform bool enable_480i       = true;   // Enable 480i interlaced mode
+uniform float interlace_offset : hint_range(0.0, 1.0) = 0.5; // Offset for interlace timing
+uniform bool clamp_resolution  = true;   // Clamp to 640x480 regardless of window size
+uniform float target_width     : hint_range(320.0, 1920.0) = 640.0;  // Target horizontal resolution
+uniform float target_height    : hint_range(240.0, 1080.0) = 480.0;  // Target vertical resolution
+
+// Optional stylistic Y scale for beam geometry (set 0.75 for "classic" look)
 uniform float aspect_y_scale   : hint_range(0.25, 2.0)  = 1.0;
 
 // Behavior toggles analogous to #defines
-uniform bool LINEAR_PROCESSING = true;  // work in “linearized” domain then apply monitor gamma
+uniform bool LINEAR_PROCESSING = true;  // work in "linearized" domain then apply monitor gamma
 uniform bool OVERSAMPLE        = true;  // vertical oversample for scanline moiré reduction
 
 // Lightweight bloom (bright-pass + small blur on screen texture)
@@ -38,7 +44,14 @@ uniform vec4 corner_bg_color : source_color = vec4(0.0745098, 0.0745098, 0.09411
 float FIXF(float c) { return max(abs(c), 1e-5); }
 vec4  FIX4(vec4 c)  { return max(abs(c), vec4(1e-5)); }
 
-float frame_mod2() { return floor(mod(TIME * 60.0, 2.0)); }
+// 480i uses 59.94 Hz field rate (29.97 fps x 2 fields)
+float frame_mod2() { 
+    if (enable_480i) {
+        return floor(mod(TIME * 59.94 + interlace_offset, 2.0));
+    } else {
+        return floor(mod(TIME * 60.0, 2.0));
+    }
+}
 
 vec4 TEX2D(vec2 uv) {
     vec4 s = texture(screen_tex, uv);
@@ -131,9 +144,11 @@ vec3 bloom_apply(vec2 uv, vec2 screen_px, float intensity, float radius_px, floa
 void fragment() {
     // Live framebuffer sizes
     vec2 texture_size = vec2(textureSize(screen_tex, 0));
-    vec2 video_size   = texture_size;
-    vec2 screen_px    = 1.0 / texture_size;
-    vec2 output_size  = texture_size;
+    
+    // For 480i clamping: render as if we have low resolution but fill the full canvas
+    vec2 video_size = clamp_resolution ? vec2(target_width, target_height) : texture_size;
+    vec2 screen_px = 1.0 / texture_size;  // Keep original for bloom calculations
+    vec2 output_size = texture_size;
 
     // Aspect for curvature domain
     vec2 aspect = vec2(output_size.x / output_size.y, 1.0);
@@ -145,32 +160,31 @@ void fragment() {
     vec4 sin_cos_angle = vec4(sinangle.x, sinangle.y, cosangle.x, cosangle.y);
     vec3 stretch = maxscale_as(sin_cos_angle, aspect, d, R);
 
-    // Interlacing factor
-    float il_y = clamp(floor(video_size.y / (200.0 * interlace_toggle)), 1.0, 2.0);
+    // 480i interlacing - force 2.0 for proper interlaced mode
+    float il_y = enable_480i ? 2.0 : clamp(floor(video_size.y / 200.0), 1.0, 2.0);
     vec2 ilfac = vec2(1.0, il_y);
 
-    // “texel size” in the sampling lattice
-    vec2 TextureSize = vec2(SHARPER * texture_size.x, texture_size.y);
+    // "texel size" in the sampling lattice - use video_size for clamped resolution
+    vec2 TextureSize = vec2(SHARPER * video_size.x, video_size.y);
     vec2 one = ilfac / TextureSize;
 
-    // For dotmask parity
-    float mod_factor = SCREEN_UV.x * texture_size.x * output_size.x / video_size.x;
+    // For dotmask parity - adjust for clamped resolution
+    float mod_factor = SCREEN_UV.x * video_size.x;
 
     // ---- Curvature mapping (to get sample UV 'xy') ----
     vec2 texCoord = SCREEN_UV;
     vec2 xy;
     if (CURVATURE > 0.5) {
-        vec2 cd = texCoord * (texture_size / video_size);
+        vec2 cd = texCoord;
         cd = (cd - vec2(0.5)) * aspect * stretch.z + stretch.xy;
         xy = (bkwtrans_as(cd, sin_cos_angle, aspect, d, R) /
-              (vec2(overscan_x, overscan_y) / 100.0) / aspect + vec2(0.5)) *
-             (video_size / texture_size);
+              (vec2(overscan_x, overscan_y) / 100.0) / aspect + vec2(0.5));
     } else {
         xy = texCoord;
     }
 
-    // ---- Corner mask (as before) ----
-    vec2 cd2 = xy * (texture_size / video_size);
+    // ---- Corner mask ----
+    vec2 cd2 = xy;
     cd2 = (cd2 - vec2(0.5)) * vec2(overscan_x, overscan_y) / 100.0 + vec2(0.5);
     cd2 = min(cd2, vec2(1.0) - cd2) * aspect;
     vec2 cdist = vec2(cornersize);
@@ -178,10 +192,19 @@ void fragment() {
     float dist_c = sqrt(dot(cd2, cd2));
     float cval = clamp((cdist.x - dist_c) * cornersmooth, 0.0, 1.0);
 
-    // ---- Build sampling lattice in curved UV (unchanged) ----
+    // ---- Build sampling lattice in curved UV ----
     float ilfloat = (ilfac.y > 1.5) ? mod(frame_mod2(), 2.0) : 0.0;
 
-    vec2 ratio_scale_tex = (xy * TextureSize - vec2(0.5) + vec2(0.0, ilfloat)) / ilfac;
+    // For clamped resolution: pixelate by sampling at lower resolution
+    vec2 sample_uv = xy;
+    if (clamp_resolution) {
+        // Convert to pixel coordinates, floor to create pixelation, then back to UV
+        vec2 pixel_coords = sample_uv * video_size;
+        pixel_coords = floor(pixel_coords) + vec2(0.5);
+        sample_uv = pixel_coords / video_size;
+    }
+
+    vec2 ratio_scale_tex = (sample_uv * TextureSize - vec2(0.5) + vec2(0.0, ilfloat)) / ilfac;
     vec2 uv_ratio_tex = fract(ratio_scale_tex);
     vec2 base_xy = (floor(ratio_scale_tex) * ilfac + vec2(0.5) - vec2(0.0, ilfloat)) / TextureSize;
 
@@ -214,7 +237,7 @@ void fragment() {
     }
 
     // ---- NEW: use SCREEN-SPACE phase for vertical beam weights ----
-    // This makes scanlines uniform and not “elliptical” under curvature.
+    // This makes scanlines uniform and not "elliptical" under curvature.
     float y_screen_tex = (SCREEN_UV.y * TextureSize.y - 0.5 + ilfloat) / ilfac.y;
     float uv_ratio_scr = fract(y_screen_tex);
 
@@ -245,7 +268,7 @@ void fragment() {
 
     // Bloom (content only)
     if (bloom_intensity > 0.0) {
-        vec3 glow = bloom_apply(xy, screen_px, bloom_intensity, bloom_radius_px, bloom_threshold);
+        vec3 glow = bloom_apply(clamp_resolution ? sample_uv : xy, screen_px, bloom_intensity, bloom_radius_px, bloom_threshold);
         content_rgb = clamp(content_rgb + glow * cval, 0.0, 10.0);
     }
 
