@@ -24,9 +24,7 @@ WebHelper="*res://WebHelper.gd"
 
 window/size/viewport_width=640
 window/size/viewport_height=480
-window/size/resizable=true
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
 
 [editor]
 
