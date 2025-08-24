@@ -35,13 +35,18 @@ extends Node3D
 @export var range_anisotropy: float = 0.2
 @export var range_rotation_deg: float = 47.0
 
+# Polar ice cap controls
+@export var ice_cap_latitude_start: float = 0.95 # Latitude where the transition to ice caps begins
+@export var ice_cap_latitude_full: float = 0.96 # Latitude where the transition to ice caps is complete
+@export var ice_cap_height_bias: float = 0.35 # Raised height of the final ice cap, relative to relief_scale
+
 # Mesh smoothing/triangulation controls
 @export var smooth_iterations: int = 0
 @export var smooth_lambda: float = 0.5
 @export var alternate_quad_diagonals: bool = true
 
 # Performance controls
-@export var use_threaded_generation: bool = true
+@export var use_threaded_generation: bool = false
 @export var generation_chunk_size: int = 8
 
 # Atmosphere controls
@@ -454,6 +459,20 @@ func calculate_terrain_height(point: Vector3) -> float:
 	var terr_centered: float = terr_q * 2.0 - 1.0
 	combined = lerpf(combined, terr_centered, clampf(terrace_strength, 0.0, 1.0))
 	
+	# Apply polar ice cap flattening for a crisp edge
+	var lat: float = absf(p.y) # absolute latitude (0.0=equator, 1.0=pole)
+	var ice_transition: float = smoothstep(ice_cap_latitude_start, ice_cap_latitude_full, lat)
+	
+	if ice_transition > 0.0:
+		# Define the target ice cap appearance: mostly flat but with a slight elevation bias
+		var flat_ice_height = ice_cap_height_bias
+		
+		# Reduce the existing terrain variation significantly as we transition to ice
+		var smoothed_terrain = combined * lerpf(1.0, 0.05, ice_transition) # Reduce to 5% variation at full ice
+		
+		# Blend between the smoothed terrain and the target ice cap height
+		combined = lerpf(smoothed_terrain, flat_ice_height, ice_transition)
+	
 	# Scale to world amplitude
 	var result = combined * (radius * relief_scale)
 	
@@ -490,10 +509,10 @@ func get_color_for_vertex_index(i: int) -> Color:
 	var polar_fade: float = 1.0 - smoothstep(0.86, 0.98, lat)
 	base = base.lerp(Color(0.12, 0.07, 0.05), var_amt * polar_fade)
 	
-	# Ice caps: latitude-driven, smoother and more consistent
-	var snow_lat_mask: float = smoothstep(0.86, 0.98, lat)
-	var snow_mix: float = clampf(pow(snow_lat_mask, 1.7) * 0.5, 0.0, 0.6)
-	var snow_color: Color = Color(0.82, 0.88, 0.92)
+	# Ice caps: use a crisp smoothstep transition consistent with terrain generation
+	var snow_mix: float = smoothstep(ice_cap_latitude_start, ice_cap_latitude_full, lat)
+	
+	var snow_color: Color = Color(0.8, 0.84, 0.88) # Darker, less blinding ice color
 	return base.lerp(snow_color, snow_mix)
 
 func mars_height_to_color(t: float) -> Color:
@@ -541,11 +560,8 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(landing_static_body):
 		landing_static_body.constant_angular_velocity = Vector3(0.0, rotation_speed, 0.0)
 	
-	# Update atmosphere params each frame (sun direction may change)
-	if use_mesh_atmosphere:
-		_update_atmosphere_params()
-	else:
-		_update_surface_atmo_params()
+	# Disable continuous atmosphere updates to prevent rolling shadows
+	# Atmosphere parameters will be set once at initialization
 	
 	# Apply gravitational pull only to bodies that aren't too far
 	for body in get_tree().get_nodes_in_group("affected_by_gravity"):

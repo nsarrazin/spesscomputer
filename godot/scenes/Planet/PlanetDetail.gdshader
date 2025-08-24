@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_back, depth_draw_opaque, shadow_to_opacity;
+render_mode cull_back, depth_draw_opaque;
 
 uniform float planet_radius : hint_range(0.0, 1e9) = 200000.0;
 uniform float detail_scale : hint_range(0.1, 128.0) = 24.0;
@@ -70,19 +70,33 @@ float sample_triplanar(vec3 p, vec3 n, float scale) {
 	return tx * w.x + ty * w.y + tz * w.z;
 }
 
-// Simple ambient occlusion using surface curvature
+// Simple ambient occlusion using surface curvature (now in stable coordinate space)
 float calculate_ao(vec3 pos, vec3 normal, float radius) {
+	// Use normalized position for stable sampling coordinates
+	vec3 normalized_pos = normalize(pos);
 	float eps = radius * 0.01;
-	float center_height = sample_triplanar(pos / max(planet_radius, 1e-3), normal, detail_scale);
 	
-	// Sample surrounding points
+	// Sample height using stable coordinates
+	float center_height = sample_triplanar(normalized_pos, normal, detail_scale);
+	
+	// Sample surrounding points in tangent space
 	float ao = 0.0;
-	int samples = 8;
+	int samples = 6; // Reduced for performance
 	for (int i = 0; i < samples; i++) {
 		float angle = float(i) * 2.0 * PI / float(samples);
-		vec3 offset = (cos(angle) * normal.zxy + sin(angle) * normal.yzx) * eps;
-		vec3 sample_pos = pos + offset;
-		float sample_height = sample_triplanar(sample_pos / max(planet_radius, 1e-3), normal, detail_scale);
+		
+		// Create tangent vectors
+		vec3 tangent = normalize(cross(normal, vec3(0.0, 1.0, 0.0)));
+		if (length(tangent) < 0.1) {
+			tangent = normalize(cross(normal, vec3(1.0, 0.0, 0.0)));
+		}
+		vec3 bitangent = normalize(cross(normal, tangent));
+		
+		// Sample offset in tangent space
+		vec3 offset = (cos(angle) * tangent + sin(angle) * bitangent) * eps;
+		vec3 sample_pos = normalize(normalized_pos + offset * 0.01);
+		
+		float sample_height = sample_triplanar(sample_pos, normal, detail_scale);
 		
 		// If surrounding point is higher, it contributes to occlusion
 		ao += max(0.0, sample_height - center_height);
@@ -100,12 +114,12 @@ void vertex() {
 
 void fragment() {
 	// Surface coordinates and normals
-	vec3 p = v_pos / max(planet_radius, 1e-3);
+	vec3 p = normalize(v_pos); // Use normalized position for stable sampling
 	vec3 n = normalize(v_normal);
 	vec3 radial = normalize(v_pos);
 	vec3 world_normal = normalize(v_world_normal);
 	
-	// Surface detail from triplanar noise
+	// Surface detail from triplanar noise (using stable coordinate space)
 	float detail = sample_triplanar(p, n, detail_scale);
 	detail = (detail - 0.5) * 2.0; // Remap to [-1, 1]
 	
