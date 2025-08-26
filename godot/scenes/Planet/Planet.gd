@@ -1,55 +1,55 @@
+@tool
 extends Node3D
 
 @onready var mesh_instance = $MeshInstance3D
 @onready var collision_shape_instance = $CollisionShape3D
 
-@export var radius: float = 200000.0
-@export var rotation_speed: float = 0.005
-@export var gravitational_pull: float = 3e9
-@export var segments: int = 128
+@export var regenerate_in_editor: bool = false: set = _regenerate_in_editor_button
 
-# Terrain noise controls
+@export_group("Dimensions")
+@export var radius: float = 200000.0
+@export var segments: int = 128
+@export_group("Terrain Noise")
 @export var relief_scale: float = 0.06
+@export_group("Base Noise")
 @export var base_frequency: float = 0.08
 @export var base_octaves: int = 4
 @export var base_lacunarity: float = 2.0
 @export var base_gain: float = 0.45
+@export_group("Detail Noise")
 @export var detail_frequency: float = 2.5
 @export var detail_octaves: int = 4
 @export var detail_lacunarity: float = 2.2
 @export var detail_gain: float = 0.48
+@export_group("Micro Noise")
 @export var micro_frequency: float = 6.0
 @export var micro_octaves: int = 3
 @export var micro_lacunarity: float = 2.4
 @export var micro_gain: float = 0.52
 @export var micro_strength: float = 0.25
-
-# Terrain flattening controls (flatten small variations into broader flats)
+@export_group("Feature Shaping")
 @export var flatten_deadband: float = 0.15
-
-# Feature shaping controls
 @export var terrace_steps: int = 7
 @export var terrace_strength: float = 3
 @export var range_strength: float = 0.35
 @export var range_frequency_main: float = 1.6
 @export var range_anisotropy: float = 0.2
 @export var range_rotation_deg: float = 47.0
-
-# Polar ice cap controls
-@export var ice_cap_latitude_start: float = 0.95 # Latitude where the transition to ice caps begins
-@export var ice_cap_latitude_full: float = 0.96 # Latitude where the transition to ice caps is complete
-@export var ice_cap_height_bias: float = 0.35 # Raised height of the final ice cap, relative to relief_scale
-
-# Mesh smoothing/triangulation controls
+@export_group("Polar Ice Caps")
+@export var ice_cap_latitude_start: float = 0.82 # Latitude where the transition to ice caps begins
+@export var ice_cap_latitude_full: float = 0.86 # Latitude where the transition to ice caps is complete
+@export var ice_cap_height_bias: float = 0.25 # Raised height of the final ice cap, relative to relief_scale
+@export_group("Mesh Quality")
 @export var smooth_iterations: int = 0
 @export var smooth_lambda: float = 0.5
 @export var alternate_quad_diagonals: bool = true
-
-# Performance controls
+@export_group("Performance")
 @export var use_threaded_generation: bool = false
 @export var generation_chunk_size: int = 8
-
-# Atmosphere controls
+@export_group("Physics")
+@export var rotation_speed: float = 0.005
+@export var gravitational_pull: float = 3e9
+@export_group("Atmosphere")
 @export var atmosphere_height_scale: float = 0.4 # fraction of radius
 @export var atmosphere_intensity: float = 0.5
 @export var atmosphere_mie_intensity: float = 0.3
@@ -58,8 +58,7 @@ extends Node3D
 @export var atmosphere_mie_color: Color = Color(1.0, 0.95, 0.9)
 @export var atmosphere_segments: int = 32
 @export var use_mesh_atmosphere: bool = true
-
-# Scatter (pebbles/boulders) controls
+@export_group("Scatter")
 @export var enable_scatter: bool = true
 @export var scatter_radius: float = 800.0
 @export var scatter_rebuild_move_deg: float = 2.0
@@ -76,6 +75,7 @@ extends Node3D
 @export var scatter_color_boulder: Color = Color(0.26, 0.18, 0.14)
 @export var scatter_draw_distance: float = 8000.0
 @export var scatter_update_interval: float = 0.25
+@export_group("") # End groups
 
 var noise: FastNoiseLite = FastNoiseLite.new() # detail
 var noise_base: FastNoiseLite = FastNoiseLite.new()
@@ -111,29 +111,7 @@ var atmosphere_material: ShaderMaterial
 
 func _ready() -> void:
 	# Configure noise 
-	noise.seed = randi()
-	noise.noise_type = FastNoiseLite.TYPE_PERLIN
-	noise.fractal_type = FastNoiseLite.FRACTAL_FBM
-	noise.frequency = detail_frequency
-	noise.fractal_octaves = detail_octaves
-	noise.fractal_lacunarity = detail_lacunarity
-	noise.fractal_gain = detail_gain
-	
-	noise_base.seed = randi() + 1337
-	noise_base.noise_type = FastNoiseLite.TYPE_PERLIN
-	noise_base.fractal_type = FastNoiseLite.FRACTAL_RIDGED
-	noise_base.frequency = base_frequency
-	noise_base.fractal_octaves = base_octaves
-	noise_base.fractal_lacunarity = base_lacunarity
-	noise_base.fractal_gain = base_gain
-	
-	noise_micro.seed = randi() + 4242
-	noise_micro.noise_type = FastNoiseLite.TYPE_SIMPLEX
-	noise_micro.fractal_type = FastNoiseLite.FRACTAL_FBM
-	noise_micro.frequency = micro_frequency
-	noise_micro.fractal_octaves = micro_octaves
-	noise_micro.fractal_lacunarity = micro_lacunarity
-	noise_micro.fractal_gain = micro_gain
+	_configure_noise_instances()
 	
 	# Cache a basis to orient mountain ranges (deterministic)
 	var axis: Vector3 = Vector3(0.42, 0.86, 0.27).normalized()
@@ -535,6 +513,7 @@ func create_planet_material() -> ShaderMaterial:
 	material.set_shader_parameter("planet_radius", radius)
 	material.set_shader_parameter("detail_scale", 24.0)
 	material.set_shader_parameter("detail_strength", 0.15)
+	material.set_shader_parameter("ground_texture", load("res://art/images/ground.jpg"))
 	material.set_shader_parameter("normal_strength", 0.0)
 	material.set_shader_parameter("detail_fade_start", radius * 0.6)
 	material.set_shader_parameter("detail_fade_end", radius * 3.0)
@@ -549,6 +528,17 @@ func create_planet_material() -> ShaderMaterial:
 	material.set_shader_parameter("atmo_mie_color", atmosphere_mie_color)
 	return material
 
+func _process(_delta: float):
+	# In the editor or at runtime, the separate atmosphere mesh needs continuous updates
+	# to correctly calculate its appearance based on camera position. This will not
+	# reintroduce shadow artifacts as the atmosphere mesh does not cast shadows.
+	if use_mesh_atmosphere:
+		if not is_instance_valid(atmosphere_material):
+			return
+		# Only update if the node is visible and in a viewport
+		if is_visible_in_tree() and get_viewport():
+			_update_atmosphere_params()
+
 func _physics_process(delta: float) -> void:
 	if not initialized:
 		return
@@ -560,8 +550,11 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(landing_static_body):
 		landing_static_body.constant_angular_velocity = Vector3(0.0, rotation_speed, 0.0)
 	
-	# Disable continuous atmosphere updates to prevent rolling shadows
-	# Atmosphere parameters will be set once at initialization
+	# Atmosphere is a separate visual effect and must be updated each frame
+	# to work correctly from different camera angles. It does not cast shadows,
+	# so this will not reintroduce the rolling shadow artifacts on the surface.
+	if use_mesh_atmosphere:
+		_update_atmosphere_params()
 	
 	# Apply gravitational pull only to bodies that aren't too far
 	for body in get_tree().get_nodes_in_group("affected_by_gravity"):
@@ -984,3 +977,41 @@ func _generate_scatter_for_center(center_dir: Vector3) -> void:
 	while idx_p < pebble_count:
 		pebbles_mmi.multimesh.set_instance_transform(idx_p, Transform3D())
 		idx_p += 1
+
+# Setter functions for live parameter updates in editor
+func _regenerate_in_editor_button(_value: bool):
+	if Engine.is_editor_hint():
+		print("Regenerating planet in editor...")
+		_configure_noise_instances()
+		var axis: Vector3 = Vector3(0.42, 0.86, 0.27).normalized()
+		range_basis = Basis(axis, deg_to_rad(range_rotation_deg))
+		generate_planet()
+		if use_mesh_atmosphere:
+			_create_or_update_atmosphere()
+		print("Regeneration complete.")
+
+func _configure_noise_instances():
+	# Configure noise 
+	noise.seed = randi()
+	noise.noise_type = FastNoiseLite.TYPE_PERLIN
+	noise.fractal_type = FastNoiseLite.FRACTAL_FBM
+	noise.frequency = detail_frequency
+	noise.fractal_octaves = detail_octaves
+	noise.fractal_lacunarity = detail_lacunarity
+	noise.fractal_gain = detail_gain
+	
+	noise_base.seed = randi() + 1337
+	noise_base.noise_type = FastNoiseLite.TYPE_PERLIN
+	noise_base.fractal_type = FastNoiseLite.FRACTAL_RIDGED
+	noise_base.frequency = base_frequency
+	noise_base.fractal_octaves = base_octaves
+	noise_base.fractal_lacunarity = base_lacunarity
+	noise_base.fractal_gain = base_gain
+	
+	noise_micro.seed = randi() + 4242
+	noise_micro.noise_type = FastNoiseLite.TYPE_SIMPLEX
+	noise_micro.fractal_type = FastNoiseLite.FRACTAL_FBM
+	noise_micro.frequency = micro_frequency
+	noise_micro.fractal_octaves = micro_octaves
+	noise_micro.fractal_lacunarity = micro_lacunarity
+	noise_micro.fractal_gain = micro_gain

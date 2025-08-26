@@ -40,6 +40,7 @@ uniform float bloom_intensity  : hint_range(0.0, 1.0) = 0.25;
 uniform float bloom_threshold  : hint_range(0.0, 2.0) = 1.0;  // >1 = only very bright
 uniform float bloom_radius_px  : hint_range(0.0, 8.0) = 2.0;
 uniform vec4 corner_bg_color : source_color = vec4(0.0745098, 0.0745098, 0.09411765, 1.0);
+uniform float saturation       : hint_range(0.0, 2.0) = 1.0; // Saturation control
 
 float FIXF(float c) { return max(abs(c), 1e-5); }
 vec4  FIX4(vec4 c)  { return max(abs(c), vec4(1e-5)); }
@@ -274,6 +275,10 @@ void fragment() {
 
     // Blend content with corner background (already linear due to source_color)
     vec3 rgb = mix(corner_bg_color.rgb, content_rgb, cval);
+
+    // Apply saturation
+    vec3 grayscale = vec3(dot(rgb, vec3(0.299, 0.587, 0.114)));
+    rgb = mix(grayscale, rgb, saturation);
 
     // Output in linear space; Godot handles display gamma conversion
     COLOR = vec4(rgb, 1.0);
