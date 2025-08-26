@@ -12,6 +12,7 @@
 	let loadingProgress = $state(0);
 	let loadingCurrent = $state(0);
 	let loadingTotal = $state(0);
+	let maxProgressSeen = $state(0);
 	let engine: any = null;
 	let resizeObserver: ResizeObserver | null = null;
 
@@ -41,6 +42,7 @@
 		loadingProgress = 0;
 		loadingCurrent = 0;
 		loadingTotal = 0;
+		maxProgressSeen = 0;
 		
 		// Cleanup engine instance
 		if (engine) {
@@ -199,7 +201,14 @@
 				loadingCurrent = current;
 				loadingTotal = total;
 				if (total > 0) {
-					loadingProgress = Math.round((current / total) * 100);
+					// Calculate percentage and clamp to 100% to prevent visual issues
+					const percentage = Math.round((current / total) * 100);
+					const clampedPercentage = Math.min(percentage, 100);
+					
+					// Ensure progress only moves forward to prevent jumping backwards
+					// This handles cases where Godot reports progress for multiple resources
+					loadingProgress = Math.max(maxProgressSeen, clampedPercentage);
+					maxProgressSeen = loadingProgress;
 				} else {
 					loadingProgress = 0;
 				}
