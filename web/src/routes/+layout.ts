@@ -1,5 +1,5 @@
 // This can be used to set page-specific meta data in the future
-export const prerender = true;
+export const ssr = false;
 
 // Default SEO configuration that can be overridden by individual pages
 export const load = () => {
