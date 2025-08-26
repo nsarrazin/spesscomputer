@@ -313,8 +313,12 @@ func _build_planet_triangles(segs: int, uvs: Array[Vector2]) -> void:
 	# Create and apply lunar material
 	var material = create_planet_material()
 	
-	mesh_instance.mesh = mesh
-	mesh_instance.material_override = material
+	# Ensure mesh_instance is valid before assigning
+	if mesh_instance != null:
+		mesh_instance.mesh = mesh
+		mesh_instance.material_override = material
+	else:
+		push_error("mesh_instance is null in _build_planet_triangles")
 
 func _add_triangle(i0: int, i1: int, i2: int, uvs: Array[Vector2]) -> void:
 	# Add triangle with reduced function calls
@@ -557,18 +561,19 @@ func _physics_process(delta: float) -> void:
 		_update_atmosphere_params()
 	
 	# Apply gravitational pull only to bodies that aren't too far
-	for body in get_tree().get_nodes_in_group("affected_by_gravity"):
-		if body is RigidBody3D:
-			if not is_instance_valid(body) or body.freeze:
-				continue
+	if get_tree() != null:
+		for body in get_tree().get_nodes_in_group("affected_by_gravity"):
+			if body is RigidBody3D:
+				if not is_instance_valid(body) or body.freeze:
+					continue
+					
+				var direction = global_position - body.global_position
+				var distance = direction.length()
+					
+				var force_magnitude = (gravitational_pull * body.mass) / (distance * distance)
+				var force = direction.normalized() * force_magnitude
 				
-			var direction = global_position - body.global_position
-			var distance = direction.length()
-				
-			var force_magnitude = (gravitational_pull * body.mass) / (distance * distance)
-			var force = direction.normalized() * force_magnitude
-			
-			body.apply_central_force(force)
+				body.apply_central_force(force)
 
 	# Update local scatter near camera
 	if enable_scatter:
@@ -611,15 +616,16 @@ func _get_directional_light() -> DirectionalLight3D:
 		if l is DirectionalLight3D:
 			return l
 	# Fallback: search the tree (first one)
-	for node in get_tree().get_nodes_in_group(""):
-		# no dedicated group; skip
-		pass
-	# Broad fallback: scan root children
-	var root = get_tree().current_scene
-	if root:
-		for c in root.get_children():
-			if c is DirectionalLight3D:
-				return c
+	if get_tree() != null:
+		for node in get_tree().get_nodes_in_group(""):
+			# no dedicated group; skip
+			pass
+		# Broad fallback: scan root children
+		var root = get_tree().current_scene
+		if root:
+			for c in root.get_children():
+				if c is DirectionalLight3D:
+					return c
 	return null
 
 func _update_atmosphere_params() -> void:
@@ -642,10 +648,12 @@ func _update_atmosphere_params() -> void:
 	var sun_dir_obj: Vector3 = (global_transform.basis.inverse() * sun_dir_world).normalized()
 	atmosphere_material.set_shader_parameter("sun_dir_object", sun_dir_obj)
 	# Camera position in planet object space
-	var _cam := get_viewport().get_camera_3d()
-	if _cam:
-		var cam_obj: Vector3 = to_local(_cam.global_transform.origin)
-		atmosphere_material.set_shader_parameter("camera_pos_object", cam_obj)
+	var viewport = get_viewport()
+	if viewport != null:
+		var _cam := viewport.get_camera_3d()
+		if _cam:
+			var cam_obj: Vector3 = to_local(_cam.global_transform.origin)
+			atmosphere_material.set_shader_parameter("camera_pos_object", cam_obj)
 
 func _update_surface_atmo_params() -> void:
 	var smat := mesh_instance.material_override as ShaderMaterial

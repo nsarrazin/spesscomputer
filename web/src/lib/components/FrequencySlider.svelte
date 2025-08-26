@@ -2,8 +2,7 @@
 	import { onMount } from 'svelte';
 	import { appState } from '$lib/AppState.svelte';
 
-	// Props
-	let { initialFrequency = 10 }: { initialFrequency?: number } = $props();
+	// No props needed - frequency comes from AppState
 
 	// Slider state for UI (derived from AppState frequency)
 	let sliderValue = $state(0);
@@ -92,17 +91,18 @@
 		}
 	}
 
-	// Initialize slider position based on initial frequency or AppState
+	// Initialize slider position based on AppState frequency
 	onMount(() => {
-		if (appState.frequency !== initialFrequency) {
-			appState.setFrequency(initialFrequency);
-		}
+		console.log('FrequencySlider onMount, appState.frequency:', appState.frequency);
 		sliderValue = freqToSlider(appState.frequency);
+		console.log('Set sliderValue to:', sliderValue);
 	});
 
 	$effect(() => {
 		// Keep slider position in sync with AppState frequency changes
+		console.log('FrequencySlider effect, appState.frequency changed to:', appState.frequency);
 		sliderValue = freqToSlider(appState.frequency);
+		console.log('Updated sliderValue to:', sliderValue);
 	});
 </script>
 

@@ -33,7 +33,39 @@ func _ready() -> void:
 	ships = get_tree().get_nodes_in_group("ships")
 	# If no ships exist, spawn one
 	if ships.is_empty():
-		spawn_ship()
+		spawn_ship("
+THRUSTER_1 = $020C
+FIRE_UP = 8
+FIRE_DOWN = 4
+
+.org $0600
+
+main_loop:
+	LDA #FIRE_UP
+	STA THRUSTER_1
+	JSR delay
+	
+	LDA #0
+	STA THRUSTER_1
+	JSR delay
+
+	LDA #FIRE_DOWN
+	STA THRUSTER_1
+	JSR delay
+
+	LDA #0
+	STA THRUSTER_1
+	JSR delay
+
+	JMP main_loop
+
+delay:
+	LDX #5
+inner_loop:
+	NOP
+	DEX
+	BNE inner_loop
+	RTS")
 
 	WebHelper.expose_all(self)
 
@@ -157,10 +189,23 @@ func js_step():
 	return true
 
 func js_getState():
+	if active_ship == null:
+		print("js_getState: active_ship is null")
+		return null
+	if active_ship.computer == null:
+		print("js_getState: active_ship.computer is null")
+		return null
+	if active_ship.computer.emulator == null:
+		print("js_getState: active_ship.computer.emulator is null")
+		return null
+	
+	var frequency = active_ship.computer.emulator.get_frequency()
+	print("js_getState: frequency = ", frequency)
+	
 	return {
 		"code": active_ship.computer.program,
 		"isPaused": active_ship.computer.pause,
-		"frequency": active_ship.computer.emulator.frequency,
+		"frequency": frequency,
 		"shipIdx": ship_idx
 	} as Dictionary
 

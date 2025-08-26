@@ -328,6 +328,11 @@ impl Emulator6502 {
     }
 
     #[func]
+    pub fn get_frequency(&self) -> i32 {
+        self.frequency
+    }
+
+    #[func]
     pub fn get_line_number(&self, pc: u16) -> i32 {
         let line = self.cpu().get_line_number(pc);
         match line {

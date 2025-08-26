@@ -79,10 +79,9 @@ zoom_sensitivity = 1.0
 max_zoom = 100.0
 
 [node name="Planet" parent="." instance=ExtResource("4_hrnxs")]
-transform = Transform3D(-0.84147, 0, 0.540303, 0, 1, 0, -0.540303, 0, -0.84147, 0, 0, 0)
+transform = Transform3D(-0.986832, 0, 0.16175, 0, 1, 0, -0.16175, 0, -0.986832, 0, 0, 0)
 physics_material_override = SubResource("PhysicsMaterial_q8u5g")
-constant_angular_velocity = Vector3(0, 0.005, 0)
-regenerate_in_editor = null
+regenerate_in_editor = false
 radius = 5000.0
 micro_octaves = 4
 micro_lacunarity = 10.0
@@ -90,9 +89,6 @@ micro_gain = 3.0
 micro_strength = 0.05
 flatten_deadband = 0.2
 range_anisotropy = 0.3
-ice_cap_latitude_start = 0.95
-ice_cap_latitude_full = 0.96
-ice_cap_height_bias = 0.35
 smooth_lambda = 0.0
 gravitational_pull = 5e+07
 atmosphere_height_scale = 1.0

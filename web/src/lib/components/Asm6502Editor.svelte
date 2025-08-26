@@ -26,6 +26,8 @@
 
   let editorContainer: HTMLDivElement;
   let view: EditorView | null = null;
+  let isDirty = $state(false);
+  let originalCode = $state('');
 
   // 6502 opcodes and directives
   const OPCODES = [
@@ -357,6 +359,16 @@
     try {
       const helper = (window as any).WebHelper;
       if (!helper || !view) return;
+      
+      // Don't highlight execution line if editor is dirty
+      if (isDirty) {
+        if (lastExecLine !== null) {
+          lastExecLine = null;
+          view.dispatch({ effects: setExecLineEffect.of(null) });
+        }
+        return;
+      }
+      
       const line: number | null | undefined = await helper.getLineNumber();
       if (line !== lastExecLine && view) {
         lastExecLine = line ?? null;
@@ -395,6 +407,8 @@
             if (newValue !== value) {
               value = newValue;
             }
+            // Update dirty state
+            isDirty = newValue !== originalCode;
           }
         })
       ];
@@ -416,6 +430,8 @@
 
   onMount(() => {
     view = createEditor();
+    originalCode = value;
+    isDirty = false;
 
     function updateLoop() {
       pollExecLine();
@@ -443,6 +459,9 @@
               insert: value
             }
           });
+          // Update original code and reset dirty state when value changes externally
+          originalCode = value;
+          isDirty = false;
         } catch (error) {
           console.error('Failed to update editor value:', error);
         }

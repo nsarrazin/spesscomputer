@@ -23,9 +23,83 @@
 		} catch {}
 	});
 
+	// Handle ship switching
+	async function handleNextShip() {
+		try {
+			await WebHelper.nextShip();
+			await updateFromGameState();
+		} catch (error) {
+			console.error('Failed to switch to next ship:', error);
+		}
+	}
+
+	async function handlePreviousShip() {
+		try {
+			await WebHelper.previousShip();
+			await updateFromGameState();
+		} catch (error) {
+			console.error('Failed to switch to previous ship:', error);
+		}
+	}
+
 	// Handle engine ready callback
 	function handleEngineReady(engineInstance: any) {
 		engine = engineInstance;
+		// Update app state with current ship's code when engine is ready
+		// Add a delay and retry mechanism to ensure ships are spawned
+		retryUpdateFromGameState();
+	}
+
+	// Retry getting game state until ship is ready
+	async function retryUpdateFromGameState(attempts = 0) {
+		const maxAttempts = 20; // Max 2 seconds (20 * 100ms)
+		
+		try {
+			const state = await WebHelper.getState();
+			if (state != null) {
+				// Ship is ready, update state
+				console.log('Game state ready:', state);
+				appState.code = state.code || '';
+				appState.isPaused = state.isPaused || false;
+				appState.frequency = state.frequency || 10;
+				appState.shipIdx = state.shipIdx || 0;
+				console.log('Updated appState frequency to:', appState.frequency);
+				return;
+			}
+		} catch (error) {
+			console.warn('Attempt', attempts + 1, 'failed:', error);
+		}
+
+		// If state is null and we haven't reached max attempts, retry
+		if (attempts < maxAttempts) {
+			setTimeout(() => {
+				retryUpdateFromGameState(attempts + 1);
+			}, 100);
+		} else {
+			console.warn('Failed to get game state after', maxAttempts, 'attempts');
+		}
+	}
+
+	// Update app state from game state
+	async function updateFromGameState() {
+		if (!engine) return;
+		try {
+			const state = await WebHelper.getState();
+			console.log('Game state:', state); // Debug log
+			
+			if (state == null) {
+				console.warn('Game state is null, ship not ready yet');
+				return;
+			}
+			
+			appState.code = state.code || '';
+			appState.isPaused = state.isPaused || false;
+			appState.frequency = state.frequency || 10; // Default to 10 if null
+			appState.shipIdx = state.shipIdx || 0;
+			console.log('Updated appState frequency to:', appState.frequency); // Debug log
+		} catch (error) {
+			console.warn('Failed to update from game state:', error);
+		}
 	}
 
 	async function handleRespawnShip() {
