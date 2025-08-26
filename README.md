@@ -3,6 +3,9 @@
 <img width="2463" height="1958" alt="cover" src="https://github.com/user-attachments/assets/9a166e20-67f2-4c9c-824d-0d3be80daf4f" />
 
 
+> [!WARNING]
+> This is super unfinished, and not a game yet. It's missing the right sensors to be able to do anything, and there's no objective. I'm already glad to have a proof of concept working, now i'll need to work on adding a game loop that's actually fun. [Let me know](https://bsky.app/profile/nsarrazin.com) if you have any ideas!
+ 
 ### Compile godot
 
 We use godot with custom [large world coordinates](https://docs.godotengine.org/en/stable/tutorials/physics/large_world_coordinates.html). This requires [compiling godot from source](https://docs.godotengine.org/en/stable/contributing/development/compiling/index.html#toc-devel-compiling). 
