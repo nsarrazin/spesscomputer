@@ -30,10 +30,6 @@ impl CPUWrapper {
         let _ = self.cpu.borrow_mut().run(None, steps as usize);
     }
 
-    pub fn wait_until_done(&self) {
-        // No-op (synchronous run)
-    }
-
     pub fn set_mapping(&self, start_address: u16, mapping: HashMap<u16, u32>) {
         *self.start_address.borrow_mut() = start_address;
         let mut map = self.offset_to_line.borrow_mut();
@@ -315,11 +311,6 @@ impl Emulator6502 {
         let cpu = self.cpu().get_cpu();
         let mut cpu_guard = cpu.borrow_mut();
         cpu_guard.regs.pc = address;
-    }
-
-    #[func]
-    pub fn wait_until_done(&self) {
-        self.cpu().wait_until_done();
     }
 
     #[func]

@@ -15,9 +15,6 @@ func _process(delta: float) -> void:
 		for addr in range(0x200, 0x300):
 			emulator.set_memory(addr, 0)
 
-	if !pause:
-		emulator.wait_until_done()
-		
 	for component in shipComponents:
 		component.run_logic(delta)
 
