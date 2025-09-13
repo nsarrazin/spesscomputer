@@ -1,7 +1,9 @@
 export class AppState {
     isPaused = $state(false);
     frequency = $state(10);
+    // code editor stuff
     code = $state('');
+    isDirty = $state(false);
     shipIdx = $state(0);
 
     setFrequency(frequency: number) {

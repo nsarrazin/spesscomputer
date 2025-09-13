@@ -107,7 +107,7 @@
 
 		try {
 			isRespawning = true;
-			await WebHelper.respawnShipWithCode(appState.code);
+			await WebHelper.respawnShipWithCode(appState.code).then(() => appState.isDirty = false)
 		} catch (error) {
 			console.error('Failed to respawn ship:', error);
 		} finally {

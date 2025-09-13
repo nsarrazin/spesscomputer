@@ -5,10 +5,9 @@
   import { defaultKeymap, history, historyKeymap, insertTab, indentSelection, deleteCharBackward } from '@codemirror/commands';
   import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
   import { lintGutter, linter, type Diagnostic } from '@codemirror/lint';
-  import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
-  import { tags as t } from '@lezer/highlight';
   import { autocompletion, completeFromList } from '@codemirror/autocomplete';
   import { StateField, StateEffect, RangeSet } from '@codemirror/state';
+	import { appState } from '$lib/AppState.svelte';
 
   interface Props {
     value?: string;
@@ -26,7 +25,6 @@
 
   let editorContainer: HTMLDivElement;
   let view: EditorView | null = null;
-  let isDirty = $state(false);
   let originalCode = $state('');
 
   // 6502 opcodes and directives
@@ -361,7 +359,7 @@
       if (!helper || !view) return;
       
       // Don't highlight execution line if editor is dirty
-      if (isDirty) {
+      if (appState.isDirty) {
         if (lastExecLine !== null) {
           lastExecLine = null;
           view.dispatch({ effects: setExecLineEffect.of(null) });
@@ -408,7 +406,7 @@
               value = newValue;
             }
             // Update dirty state
-            isDirty = newValue !== originalCode;
+            appState.isDirty = newValue !== originalCode;
           }
         })
       ];
@@ -431,7 +429,7 @@
   onMount(() => {
     view = createEditor();
     originalCode = value;
-    isDirty = false;
+    appState.isDirty = false;
 
     function updateLoop() {
       pollExecLine();
@@ -461,7 +459,7 @@
           });
           // Update original code and reset dirty state when value changes externally
           originalCode = value;
-          isDirty = false;
+          appState.isDirty = false;
         } catch (error) {
           console.error('Failed to update editor value:', error);
         }
